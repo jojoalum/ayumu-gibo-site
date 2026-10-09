@@ -122,14 +122,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(to bottom,var(--frame-shade),transparent 34%);
 }
-.frame::after{
-  content:"";position:absolute;inset:-50%;z-index:1;pointer-events:none;
-  background-image:var(--grain,none);mix-blend-mode:overlay;opacity:0;transition:opacity .3s;
-}
-.work:hover .frame::after,.work:focus-visible .frame::after{opacity:.32;animation:grain .45s steps(3) infinite}
-@keyframes grain{
-  0%{transform:translate(0,0)}25%{transform:translate(-7%,4%)}50%{transform:translate(5%,-6%)}75%{transform:translate(-3%,7%)}100%{transform:translate(6%,-2%)}
-}
 .f-tag,.f-play{
   position:absolute;top:12px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--frame-ink);line-height:1.4;
@@ -211,7 +203,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   .tc::before{animation:none}
   .frame img{transition:none}
   .work:hover .frame img,.work:focus-visible .frame img{transform:none}
-  .work:hover .frame::after,.work:focus-visible .frame::after{animation:none}
 }
 </style>
 </head>
@@ -413,22 +404,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   if ('ResizeObserver' in window) new ResizeObserver(fit).observe(name.parentElement);
   else window.addEventListener('resize', fit);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
-
-  /* Film grain texture for thumbnail hover */
-  try {
-    const S = 140;
-    const c = document.createElement('canvas');
-    c.width = c.height = S;
-    const x = c.getContext('2d');
-    const im = x.createImageData(S, S);
-    for (let i = 0; i < im.data.length; i += 4) {
-      const v = Math.random() * 255 | 0;
-      im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
-      im.data[i + 3] = 255;
-    }
-    x.putImageData(im, 0, 0);
-    document.documentElement.style.setProperty('--grain', 'url(' + c.toDataURL() + ')');
-  } catch (e) { /* grain is decorative */ }
 
   /* Thumbnails: try the large image, then the smaller one, then show the generated still underneath */
   const swapOrHide = img => {
