@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ayumu Gibo | Video Director</title>
+<meta name="description" content="東京を拠点に活動する映像ディレクター、Ayumu Giboのポートフォリオ。ミュージックビデオ、広告、ライブ映像。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ayumu Gibo">
+<meta property="og:title" content="Ayumu Gibo | Video Director">
+<meta property="og:description" content="東京を拠点に活動する映像ディレクター、Ayumu Giboのポートフォリオ。ミュージックビデオ、広告、ライブ映像。">
+<!-- 公開URLが決まったら、og:url と og:image（1200×630の画像URL）をここに追加 -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1B3BFF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231B3BFF'/%3E%3Cpath d='M22 32h20M32 22v20' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="preconnect" href="https://i.vimeocdn.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room grid — one featured work full width, three beneath, then About and Contact. Works play in an overlay player. */
+:root{
+  --bg:#ECEDF1;
+  --fg:#12141A;
+  --muted:#5A5F6E;
+  --line:#C8CBD5;
+  --chroma:#1B3BFF;
+  --on-chroma:#F3F5FF;
+  --frame-bg:#0B0D12;
+  --frame-ink:#F2F4F8;
+  --frame-shade:rgba(6,7,10,.55);
+  --scrim:rgba(7,8,11,.94);
+  --display:"Big Shoulders Display","Zen Kaku Gothic New","Arial Narrow",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --gutter:clamp(16px,4vw,48px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0C0E13;--fg:#E6E8EE;--muted:#8E94A6;--line:#262A35;--chroma:#2440FF;--on-chroma:#F3F5FF;color-scheme:dark;
+  }
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html.is-locked,html.is-locked body{overflow:hidden}
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--body);font-size:15px;line-height:1.8;
+  padding-inline:var(--gutter);padding-block:0;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+::selection{background:var(--chroma);color:var(--on-chroma)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--chroma);outline-offset:4px}
+
+/* Header */
+.site-header{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:10;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding-block:14px;background:var(--bg);border-bottom:1px solid var(--line);
+}
+.mark{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;line-height:1}
+.nav{display:flex;gap:clamp(14px,2.6vw,32px);font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase}
+.nav a{text-decoration:none;color:var(--muted);transition:color .2s}
+.nav a:hover{color:var(--fg)}
+
+main{display:flex;flex-direction:column;gap:clamp(72px,11vw,160px);padding-block:clamp(16px,2.4vw,28px) clamp(64px,8vw,120px)}
+
+/* Title plate */
+.plate{
+  position:relative;overflow:hidden;
+  background-color:var(--chroma);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cpath d='M38 44h12M44 38v12' stroke='%23ffffff' stroke-opacity='.5' stroke-width='1.25'/%3E%3C/svg%3E");
+  background-position:center;
+  color:var(--on-chroma);
+  padding:clamp(16px,2.6vw,32px);
+  display:flex;flex-direction:column;gap:clamp(48px,9vw,128px);
+}
+.plate-row{
+  display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px 24px;
+  font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;line-height:1.6;
+}
+.plate-row p{margin:0}
+.tc{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tc::before{content:"";display:inline-block;width:7px;height:7px;background:currentColor;margin-right:9px;vertical-align:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.name{
+  margin:0;font-family:var(--display);font-weight:900;line-height:.8;
+  text-transform:uppercase;letter-spacing:0;white-space:nowrap;font-size:14vw;
+}
+.name span{display:inline-block}
+.fields{display:flex;flex-wrap:wrap;gap:4px 22px;margin:0;padding:0;list-style:none}
+
+/* Section heads */
+.sec-head{
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;
+  border-bottom:1px solid var(--fg);padding-bottom:12px;margin-bottom:clamp(20px,3vw,36px);
+}
+h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(44px,7vw,96px);line-height:.85;letter-spacing:.01em}
+.count{font-family:var(--mono);font-size:12px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+
+/* Works */
+.works-grid{display:grid;grid-template-columns:1fr;gap:clamp(36px,4vw,56px) clamp(16px,2vw,28px)}
+@media (min-width:900px){
+  .works-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .work.feature{grid-column:1/-1}
+  .work.feature .frame{aspect-ratio:2/1}
+}
+.work{display:block;min-width:0;text-decoration:none}
+.work:focus-visible{outline-offset:6px}
+.frame{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:var(--frame-bg)}
+.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.frame img.is-missing{visibility:hidden}
+.work:hover .frame img,.work:focus-visible .frame img{transform:scale(1.035)}
+.frame::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to bottom,var(--frame-shade),transparent 34%);
+}
+.frame::after{
+  content:"";position:absolute;inset:-50%;z-index:1;pointer-events:none;
+  background-image:var(--grain,none);mix-blend-mode:overlay;opacity:0;transition:opacity .3s;
+}
+.work:hover .frame::after,.work:focus-visible .frame::after{opacity:.32;animation:grain .45s steps(3) infinite}
+@keyframes grain{
+  0%{transform:translate(0,0)}25%{transform:translate(-7%,4%)}50%{transform:translate(5%,-6%)}75%{transform:translate(-3%,7%)}100%{transform:translate(6%,-2%)}
+}
+.f-tag,.f-play{
+  position:absolute;top:12px;z-index:2;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--frame-ink);line-height:1.4;
+}
+.f-tag{left:14px;opacity:.8}
+.f-play{right:14px;opacity:.8;transition:opacity .25s;border-bottom:1px solid transparent}
+.work:hover .f-play,.work:focus-visible .f-play{opacity:1;border-bottom-color:var(--frame-ink)}
+
+.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:6px 16px;padding-top:14px}
+.meta > div{min-width:0}
+.w-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(22px,2.1vw,28px);line-height:1.08;letter-spacing:.01em;text-wrap:balance}
+.feature .w-title{font-size:clamp(28px,3.4vw,44px)}
+.w-artist{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+.w-cat{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+/* About */
+.about-body{display:grid;grid-template-columns:1fr;gap:clamp(28px,4vw,48px)}
+@media (min-width:860px){.about-body{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}}
+.bio{max-width:34em;min-width:0}
+.bio p{margin:0 0 1.1em}
+.bio .lead{font-size:clamp(17px,1.6vw,20px);line-height:1.9;font-weight:500}
+.bio .en{color:var(--muted);font-size:14px;line-height:1.75}
+.facts{display:grid;grid-template-columns:max-content 1fr;gap:12px 28px;margin:0;font-size:14px;line-height:1.7;align-content:start;min-width:0}
+.facts dt{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.facts dd{margin:0;min-width:0}
+
+/* Contact */
+.contact-body{display:grid;gap:20px;justify-items:start}
+.contact-body p{margin:0;max-width:30em}
+.mail-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;min-width:0;max-width:100%}
+.mail{
+  font-family:var(--display);font-weight:700;font-size:clamp(22px,2.6vw,32px);line-height:1.15;letter-spacing:.01em;
+  color:inherit;text-decoration:none;overflow-wrap:anywhere;min-width:0;
+  border-bottom:2px solid var(--chroma);padding-bottom:3px;transition:color .2s;
+}
+.mail:hover{color:var(--chroma)}
+.copy{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--fg);background:transparent;border:1px solid var(--fg);
+  padding:7px 14px;cursor:pointer;transition:background .2s,color .2s,border-color .2s;
+}
+.copy:hover{background:var(--chroma);border-color:var(--chroma);color:var(--on-chroma)}
+
+/* Footer */
+.site-footer{
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;
+  border-top:1px solid var(--line);padding-block:18px 28px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+}
+
+/* Player overlay */
+.player{
+  position:fixed;inset:0;z-index:50;background:var(--scrim);
+  display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) var(--gutter) max(16px,env(safe-area-inset-bottom,0px));
+}
+.player-inner{
+  width:min(1280px,100%,calc((100vh - 150px) * var(--ratio,1.7778)));
+  width:min(1280px,100%,calc((100dvh - 150px) * var(--ratio,1.7778)));
+  display:flex;flex-direction:column;gap:12px;
+}
+.player-bar{
+  display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px 20px;
+  color:var(--frame-ink);
+}
+.player-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(18px,2vw,24px);line-height:1.2;letter-spacing:.02em;min-width:0}
+.player-actions{display:flex;align-items:center;gap:20px}
+.player-actions a,.player-actions button{
+  font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--frame-ink);background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:none;
+  border-bottom:1px solid transparent;
+}
+.player-actions a:hover,.player-actions button:hover{border-bottom-color:var(--frame-ink)}
+.player-frame{position:relative;width:100%;aspect-ratio:var(--ratio,1.7778);background:var(--frame-bg)}
+.player-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .tc::before{animation:none}
+  .frame img{transition:none}
+  .work:hover .frame img,.work:focus-visible .frame img{transform:none}
+  .work:hover .frame::after,.work:focus-visible .frame::after{animation:none}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="mark" href="#top">Ayumu Gibo</a>
+  <nav class="nav" aria-label="ページ内リンク">
+    <a href="#works">Works</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="plate" aria-label="Ayumu Gibo">
+    <div class="plate-row">
+      <p>Video Director<br>Tokyo, Japan</p>
+      <p class="tc" id="tc" aria-hidden="true">TC 00:00:00:00 JST</p>
+    </div>
+    <h1 class="name"><span>Ayumu Gibo</span></h1>
+    <div class="plate-row">
+      <ul class="fields">
+        <li>Music Video</li>
+        <li>Commercial</li>
+        <li>Live Visual</li>
+        <li>AI Film</li>
+        <li>3DCG / VFX</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="works" aria-labelledby="works-h">
+    <div class="sec-head">
+      <h2 id="works-h">Works</h2>
+      <span class="count">4 titles</span>
+    </div>
+    <div class="works-grid">
+
+      <a class="work feature" href="https://vimeo.com/1234326957" target="_blank" rel="noopener"
+         data-provider="vimeo" data-id="1234326957" data-ratio="1.4333" data-title="LEX intro PV / LEX">
+        <div class="frame" data-seed="1234326957" data-h1="214" data-h2="188">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.vimeocdn.com/video/2210259795-352b66b0dbd973727fc49365faa9e897d3d4fab77f383d0debe8ae85943739c8-d_1280x720"
+               data-fallback="https://i.vimeocdn.com/video/2210259795-352b66b0dbd973727fc49365faa9e897d3d4fab77f383d0debe8ae85943739c8-d_295x166"
+               alt="" decoding="async">
+          <span class="f-tag" aria-hidden="true">Vimeo</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">LEX intro PV</h3>
+            <p class="w-artist">LEX</p>
+          </div>
+          <p class="w-cat">Promotion Video</p>
+        </div>
+      </a>
+
+      <a class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
+         data-provider="youtube" data-id="z9OEtHuGm4I" data-ratio="1.7778" data-title="ロデオ / MIKADO HARKA ENEL">
+        <div class="frame" data-seed="z9OEtHuGm4I" data-h1="22" data-h2="40">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.ytimg.com/vi/z9OEtHuGm4I/maxresdefault.jpg"
+               data-fallback="https://i.ytimg.com/vi/z9OEtHuGm4I/hqdefault.jpg"
+               alt="" loading="lazy" decoding="async">
+          <span class="f-tag" aria-hidden="true">YouTube</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">ロデオ</h3>
+            <p class="w-artist">MIKADO HARKA ENEL</p>
+          </div>
+          <p class="w-cat">Music Video</p>
+        </div>
+      </a>
+
+      <a class="work" href="https://www.youtube.com/watch?v=4A5ALrv4en8" target="_blank" rel="noopener"
+         data-provider="youtube" data-id="4A5ALrv4en8" data-ratio="1.7778" data-title="SURECHIGAI REMIX feat. Emi Meyer / OZworld">
+        <div class="frame" data-seed="4A5ALrv4en8" data-h1="268" data-h2="318">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.ytimg.com/vi/4A5ALrv4en8/maxresdefault.jpg"
+               data-fallback="https://i.ytimg.com/vi/4A5ALrv4en8/hqdefault.jpg"
+               alt="" loading="lazy" decoding="async">
+          <span class="f-tag" aria-hidden="true">YouTube</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">SURECHIGAI REMIX feat. Emi Meyer</h3>
+            <p class="w-artist">OZworld</p>
+          </div>
+          <p class="w-cat">Music Video</p>
+        </div>
+      </a>
+
+      <a class="work" href="https://www.youtube.com/watch?v=V5lGv6_ysI0" target="_blank" rel="noopener"
+         data-provider="youtube" data-id="V5lGv6_ysI0" data-ratio="1.7778" data-title="First Aid feat. 5lack / Loota">
+        <div class="frame" data-seed="V5lGv6_ysI0" data-h1="160" data-h2="96">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.ytimg.com/vi/V5lGv6_ysI0/maxresdefault.jpg"
+               data-fallback="https://i.ytimg.com/vi/V5lGv6_ysI0/hqdefault.jpg"
+               alt="" loading="lazy" decoding="async">
+          <span class="f-tag" aria-hidden="true">YouTube</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">First Aid feat. 5lack</h3>
+            <p class="w-artist">Loota</p>
+          </div>
+          <p class="w-cat">Music Video</p>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <section id="about" aria-labelledby="about-h">
+    <div class="sec-head">
+      <h2 id="about-h">About</h2>
+      <span class="count">Profile</span>
+    </div>
+    <div class="about-body">
+      <div class="bio">
+        <p class="lead">映像ディレクター。東京を拠点に、ミュージックビデオ、広告、ライブ映像を制作しています。実写の撮影に3DCG、VFX、AI映像生成を組み合わせ、作品ごとにひとつの世界を立ち上げることを大切にしています。</p>
+        <p class="en">Video director based in Tokyo. I make music videos, commercials and live visuals, combining live action with 3DCG, VFX and generative video to build a distinct world for each piece.</p>
+      </div>
+      <dl class="facts">
+        <dt>Based</dt>
+        <dd>Tokyo, Japan</dd>
+        <dt>Fields</dt>
+        <dd>Music Video / Commercial / Live Visual / AI Film / 3DCG・VFX</dd>
+        <dt>Artists</dt>
+        <dd>LEX / OZworld / MIKADO HARKA ENEL / Loota / 5lack</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="contact" aria-labelledby="contact-h">
+    <div class="sec-head">
+      <h2 id="contact-h">Contact</h2>
+      <span class="count">Commissions open</span>
+    </div>
+    <div class="contact-body">
+      <p>MV、広告、ライブ映像のご依頼・ご相談をお待ちしています。企画段階からでもお気軽にどうぞ。</p>
+      <div class="mail-row">
+        <a class="mail" id="mail" href="mailto:ayumu.g28@icloud.com">ayumu.g28@icloud.com</a>
+        <button class="copy" id="copy" type="button">Copy</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>© 2026 Ayumu Gibo</span>
+  <span>Tokyo, Japan</span>
+</footer>
+
+<div class="player" id="player" role="dialog" aria-modal="true" aria-labelledby="player-title" hidden>
+  <div class="player-inner">
+    <div class="player-bar">
+      <p class="player-title" id="player-title"></p>
+      <div class="player-actions">
+        <a id="player-ext" href="#" target="_blank" rel="noopener">Open ↗</a>
+        <button id="player-close" type="button">Close ✕</button>
+      </div>
+    </div>
+    <div class="player-frame" id="player-frame"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Live timecode, Tokyo time at 24 fps */
+  const tc = document.getElementById('tc');
+  const p2 = n => String(n).padStart(2, '0');
+  const tick = () => {
+    const d = new Date(Date.now() + 9 * 36e5);
+    const ff = Math.floor(d.getUTCMilliseconds() * 24 / 1000);
+    tc.textContent = 'TC ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + ':' + p2(ff) + ' JST';
+  };
+  tick();
+  setInterval(tick, reduce ? 1000 : 42);
+
+  /* Fit the name to the plate width */
+  const name = document.querySelector('.name');
+  const inner = name.querySelector('span');
+  const fit = () => {
+    const avail = name.clientWidth;
+    if (!avail) return;
+    name.style.fontSize = '100px';
+    const w = inner.getBoundingClientRect().width;
+    if (w) name.style.fontSize = (100 * avail / w * 0.995) + 'px';
+  };
+  fit();
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(name.parentElement);
+  else window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+
+  /* Film grain texture for thumbnail hover */
+  try {
+    const S = 140;
+    const c = document.createElement('canvas');
+    c.width = c.height = S;
+    const x = c.getContext('2d');
+    const im = x.createImageData(S, S);
+    for (let i = 0; i < im.data.length; i += 4) {
+      const v = Math.random() * 255 | 0;
+      im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
+      im.data[i + 3] = 255;
+    }
+    x.putImageData(im, 0, 0);
+    document.documentElement.style.setProperty('--grain', 'url(' + c.toDataURL() + ')');
+  } catch (e) { /* grain is decorative */ }
+
+  /* Thumbnails: try the large image, then the smaller one, then show the generated still underneath */
+  const swapOrHide = img => {
+    const fb = img.dataset.fallback;
+    if (fb && img.src !== fb) img.src = fb;
+    else img.classList.add('is-missing');
+  };
+  document.querySelectorAll('.frame img').forEach(img => {
+    img.addEventListener('error', () => swapOrHide(img));
+    img.addEventListener('load', () => { if (img.naturalWidth > 0 && img.naturalWidth <= 120) swapOrHide(img); });
+    if (img.complete && img.naturalWidth <= 120) swapOrHide(img);
+  });
+
+  const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  const rng = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const drawStill = frame => {
+    const c = frame.querySelector('canvas');
+    if (!c) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(frame.clientWidth * dpr));
+    const h = Math.max(1, Math.round(frame.clientHeight * dpr));
+    if (c.width === w && c.height === h) return;
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const r = rng(hash(frame.dataset.seed));
+    const h1 = +frame.dataset.h1, h2 = +frame.dataset.h2;
+    ctx.fillStyle = 'hsl(' + h1 + ' 28% 7%)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 4; i++) {
+      const x = (0.08 + r() * 0.84) * w, y = (0.12 + r() * 0.76) * h, rad = w * (0.22 + r() * 0.4);
+      const hue = (i % 2 ? h2 : h1) + (r() * 16 - 8);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+      g.addColorStop(0, 'hsla(' + hue + ',' + (55 + r() * 30) + '%,' + (32 + r() * 20) + '%,0.95)');
+      g.addColorStop(1, 'hsla(' + hue + ',60%,30%,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+    }
+    const fy = (0.28 + r() * 0.36) * h, fx = (0.25 + r() * 0.5) * w;
+    const streak = ctx.createLinearGradient(0, 0, w, 0);
+    streak.addColorStop(0, 'hsla(226,100%,72%,0)');
+    streak.addColorStop(fx / w, 'hsla(226,100%,82%,0.85)');
+    streak.addColorStop(1, 'hsla(226,100%,72%,0)');
+    ctx.fillStyle = streak;
+    const th = Math.max(1, h * 0.006);
+    ctx.fillRect(0, fy - th / 2, w, th);
+    ctx.globalCompositeOperation = 'source-over';
+    const v = ctx.createRadialGradient(w / 2, h / 2, h * 0.25, w / 2, h / 2, w * 0.72);
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, w, h);
+  };
+  document.querySelectorAll('.frame[data-seed]').forEach(frame => {
+    drawStill(frame);
+    if ('ResizeObserver' in window) new ResizeObserver(() => drawStill(frame)).observe(frame);
+  });
+
+  /* Copy e-mail address */
+  const mail = document.getElementById('mail');
+  const copyBtn = document.getElementById('copy');
+  const selectMail = () => {
+    const range = document.createRange();
+    range.selectNodeContents(mail);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  };
+  copyBtn.addEventListener('click', () => {
+    const done = label => { copyBtn.textContent = label; setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1800); };
+    const text = mail.textContent.trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => done('Copied')).catch(() => { selectMail(); done('Selected'); });
+    } else {
+      selectMail();
+      done('Selected');
+    }
+  });
+
+  /* Overlay player */
+  const player = document.getElementById('player');
+  const pFrame = document.getElementById('player-frame');
+  const pTitle = document.getElementById('player-title');
+  const pExt = document.getElementById('player-ext');
+  const pClose = document.getElementById('player-close');
+  const outside = [document.querySelector('.site-header'), document.querySelector('main'), document.querySelector('.site-footer')];
+  let lastFocus = null;
+
+  const embedUrl = (provider, id) => provider === 'vimeo'
+    ? 'https://player.vimeo.com/video/' + id + '?autoplay=1&title=0&byline=0&portrait=0&dnt=1'
+    : 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1';
+
+  const openPlayer = card => {
+    const provider = card.dataset.provider;
+    lastFocus = card;
+    pTitle.textContent = card.dataset.title || '';
+    pExt.href = card.href;
+    pExt.textContent = (provider === 'vimeo' ? 'Vimeo' : 'YouTube') + 'で開く ↗';
+    player.style.setProperty('--ratio', card.dataset.ratio || '1.7778');
+    const f = document.createElement('iframe');
+    f.src = embedUrl(provider, card.dataset.id);
+    f.title = card.dataset.title || 'Video';
+    f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+    f.allowFullscreen = true;
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    pFrame.replaceChildren(f);
+    player.hidden = false;
+    document.documentElement.classList.add('is-locked');
+    outside.forEach(el => { if (el) el.inert = true; });
+    pClose.focus();
+  };
+
+  const closePlayer = () => {
+    if (player.hidden) return;
+    pFrame.replaceChildren();
+    player.hidden = true;
+    document.documentElement.classList.remove('is-locked');
+    outside.forEach(el => { if (el) el.inert = false; });
+    if (lastFocus) lastFocus.focus();
+  };
+
+  document.querySelectorAll('.work[data-id]').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      openPlayer(card);
+    });
+  });
+  pClose.addEventListener('click', closePlayer);
+  player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+})();
+</script>
+</body>
+</html>
