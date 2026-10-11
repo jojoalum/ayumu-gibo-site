@@ -30,6 +30,7 @@
   --frame-bg:#0B0D12;
   --frame-ink:#F2F4F8;
   --frame-shade:rgba(6,7,10,.55);
+  --frame-fade:rgba(6,7,10,.85);
   --scrim:rgba(7,8,11,.94);
   --display:"Big Shoulders Display","Zen Kaku Gothic New","Arial Narrow",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
@@ -99,10 +100,22 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 }
 @media (max-width:699px){
   /* iPhone: one feed in a set order (--mo on each card); the two vertical works share a row */
-  .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 12px}
+  .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .pair-row{display:contents}
-  .works-grid .work{grid-column:1/-1;order:var(--mo,0)}
+  .works-grid .work{grid-column:1/-1;order:var(--mo,0);position:relative}
   .works-grid .work.vertical{grid-column:auto}
+  /* titles sit over the thumbnail and appear on the first tap; the second tap plays */
+  .works-grid .meta{
+    position:absolute;left:0;right:0;bottom:0;z-index:2;
+    grid-template-columns:minmax(0,1fr);gap:4px;padding:36px 12px 12px;
+    background:linear-gradient(to top,var(--frame-fade),transparent);
+    opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;
+  }
+  .works-grid .work.is-revealed .meta,
+  .works-grid .work:focus-visible .meta{opacity:1;transform:none}
+  .works-grid .work .w-title{font-size:20px;color:var(--frame-ink)}
+  .works-grid .work.vertical .w-title{font-size:17px}
+  .works-grid .work .w-cat{color:var(--frame-ink);opacity:.75}
 }
 .work:focus-visible{outline-offset:6px}
 .frame{position:relative;aspect-ratio:var(--ar);max-width:100%;overflow:hidden;background:var(--frame-bg)}
@@ -194,6 +207,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
+  .works-grid .meta{transition:none}
   .frame img,.frame video{transition:none}
   .work:hover .frame img,.work:focus-visible .frame img,
   .work:hover .frame video,.work:focus-visible .frame video{transform:none}
@@ -665,13 +679,23 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     if (lastFocus) lastFocus.focus();
   };
 
-  document.querySelectorAll('.work[data-provider]').forEach(card => {
+  /* On the iPhone layout the first tap shows a work's title, the second opens the player */
+  const narrow = window.matchMedia('(max-width: 699px)');
+  const cards = document.querySelectorAll('.work[data-provider]');
+  const hideTitles = except => cards.forEach(c => { if (c !== except) c.classList.remove('is-revealed'); });
+  cards.forEach(card => {
     card.addEventListener('click', e => {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
+      if (narrow.matches && !card.classList.contains('is-revealed')) {
+        hideTitles(card);
+        card.classList.add('is-revealed');
+        return;
+      }
       openPlayer(card);
     });
   });
+  document.addEventListener('click', e => { if (!e.target.closest('.work')) hideTitles(null); });
   pClose.addEventListener('click', closePlayer);
   player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
