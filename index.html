@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room grid — one featured work full width, three beneath, then About and Contact. Works play in an overlay player. */
+/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room grid — a top row pairing a wide 16:9 work with a vertical 9:16 work at equal height, three works beneath, then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -106,12 +106,21 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
 /* Works */
 .works-grid{display:grid;grid-template-columns:1fr;gap:clamp(36px,4vw,56px) clamp(16px,2vw,28px)}
+.feature-row{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px);min-width:0}
+.work{display:block;min-width:0;text-decoration:none}
+.work.vertical .frame{aspect-ratio:9/16}
+.work.vertical .meta{grid-template-columns:minmax(0,1fr)}
 @media (min-width:900px){
   .works-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .work.feature{grid-column:1/-1}
-  .work.feature .frame{aspect-ratio:2/1}
+  .feature-row{grid-column:1/-1;flex-direction:row;align-items:flex-start;gap:clamp(16px,2vw,28px)}
+  /* flex-grow set to each frame's aspect ratio, so both frames share one height */
+  .feature-row .work.feature{flex:1.7778 1 0}
+  .feature-row .work.vertical{flex:.5625 1 0}
 }
-.work{display:block;min-width:0;text-decoration:none}
+@media (max-width:899px){
+  .work.vertical{display:grid;grid-template-columns:min(42%,300px) minmax(0,1fr);align-items:end;gap:0 clamp(16px,3vw,24px)}
+  .work.vertical .meta{padding-top:0}
+}
 .work:focus-visible{outline-offset:6px}
 .frame{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:var(--frame-bg)}
 .frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -238,10 +247,11 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   <section id="works" aria-labelledby="works-h">
     <div class="sec-head">
       <h2 id="works-h">Works</h2>
-      <span class="count">4 titles</span>
+      <span class="count">5 titles</span>
     </div>
     <div class="works-grid">
 
+      <div class="feature-row">
       <a class="work feature" href="https://vimeo.com/1234326957" target="_blank" rel="noopener"
          data-provider="vimeo" data-id="1234326957" data-ratio="1.4333" data-title="LEX intro PV / LEX">
         <div class="frame" data-seed="1234326957" data-h1="214" data-h2="188">
@@ -260,6 +270,26 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
           <p class="w-cat">Promotion Video</p>
         </div>
       </a>
+
+      <a class="work vertical" href="https://vimeo.com/1234342394" target="_blank" rel="noopener"
+         data-provider="vimeo" data-id="1234342394" data-ratio="0.5625" data-title="TOYOTA ARENA公演 PR映像 / LEX">
+        <div class="frame" data-seed="1234342394" data-h1="8" data-h2="338">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.vimeocdn.com/video/2210278114-2aeaef3d908aae23e613d56a5fd2d828d0a67c21cf62e0bd50208e17f221ca7d-d_720x1280"
+               data-fallback="https://i.vimeocdn.com/video/2210278114-2aeaef3d908aae23e613d56a5fd2d828d0a67c21cf62e0bd50208e17f221ca7d-d_360x640"
+               alt="" decoding="async">
+          <span class="f-tag" aria-hidden="true">Vimeo</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">TOYOTA ARENA公演 PR映像</h3>
+            <p class="w-artist">LEX</p>
+          </div>
+          <p class="w-cat">Promotion Video</p>
+        </div>
+      </a>
+      </div>
 
       <a class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
          data-provider="youtube" data-id="z9OEtHuGm4I" data-ratio="1.7778" data-title="ロデオ / MIKADO HARKA ENEL">
