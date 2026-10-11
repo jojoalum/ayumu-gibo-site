@@ -98,13 +98,11 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   .pair-row.trio > .work.vertical .meta{padding-top:0}
 }
 @media (max-width:699px){
-  /* iPhone: one thumbnail feed in a set order (--mo on each card); the two vertical works share a row */
-  .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  /* iPhone: one feed in a set order (--mo on each card); the two vertical works share a row */
+  .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 12px}
   .pair-row{display:contents}
-  .works-grid .work{grid-column:1/-1;order:var(--mo,0);position:relative}
+  .works-grid .work{grid-column:1/-1;order:var(--mo,0)}
   .works-grid .work.vertical{grid-column:auto}
-  /* titles stay in the page for screen readers, hidden from view */
-  .works-grid .meta{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 }
 .work:focus-visible{outline-offset:6px}
 .frame{position:relative;aspect-ratio:var(--ar);max-width:100%;overflow:hidden;background:var(--frame-bg)}
@@ -374,9 +372,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
          data-provider="youtube" data-id="u-MQuw5Phrc" data-ratio="1.7778" data-title="KUJA - ESCAPE feat. DALU">
         <div class="frame" data-seed="u-MQuw5Phrc" data-h1="250" data-h2="200">
           <canvas aria-hidden="true"></canvas>
-          <img src="https://i.ytimg.com/vi/u-MQuw5Phrc/maxres2.jpg"
-               data-fallback="https://i.ytimg.com/vi/u-MQuw5Phrc/hq2.jpg"
-               alt="" loading="lazy" decoding="async">
+          <img src="assets/escape-thumb.jpg" alt="" loading="lazy" decoding="async">
           <span class="f-tag" aria-hidden="true">YouTube</span>
           <span class="f-play" aria-hidden="true">Play ▶</span>
         </div>
