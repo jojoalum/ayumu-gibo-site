@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room sheet — works in rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
+/* Layout: the page opens straight on the works — a quiet grey edit-room sheet with rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -69,32 +69,8 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--chroma);outline-off
 .nav a{text-decoration:none;color:var(--muted);transition:color .2s}
 .nav a:hover{color:var(--fg)}
 
-main{display:flex;flex-direction:column;gap:clamp(72px,11vw,160px);padding-block:clamp(16px,2.4vw,28px) clamp(64px,8vw,120px)}
-
-/* Title plate */
-.plate{
-  position:relative;overflow:hidden;
-  background-color:var(--chroma);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cpath d='M38 44h12M44 38v12' stroke='%23ffffff' stroke-opacity='.5' stroke-width='1.25'/%3E%3C/svg%3E");
-  background-position:center;
-  color:var(--on-chroma);
-  padding:clamp(16px,2.6vw,32px);
-  display:flex;flex-direction:column;gap:clamp(48px,9vw,128px);
-}
-.plate-row{
-  display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px 24px;
-  font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;line-height:1.6;
-}
-.plate-row p{margin:0}
-.tc{font-variant-numeric:tabular-nums;white-space:nowrap}
-.tc::before{content:"";display:inline-block;width:7px;height:7px;background:currentColor;margin-right:9px;vertical-align:1px;animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-.name{
-  margin:0;font-family:var(--display);font-weight:900;line-height:.8;
-  text-transform:uppercase;letter-spacing:0;white-space:nowrap;font-size:14vw;
-}
-.name span{display:inline-block}
-.fields{display:flex;flex-wrap:wrap;gap:4px 22px;margin:0;padding:0;list-style:none}
+.site-title{margin:0;font:inherit;line-height:1}
+main{display:flex;flex-direction:column;gap:clamp(72px,11vw,160px);padding-block:clamp(40px,6vw,88px) clamp(64px,8vw,120px)}
 
 /* Section heads */
 .sec-head{
@@ -215,7 +191,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
-  .tc::before{animation:none}
   .frame img,.frame video{transition:none}
   .work:hover .frame img,.work:focus-visible .frame img,
   .work:hover .frame video,.work:focus-visible .frame video{transform:none}
@@ -225,7 +200,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 <body>
 
 <header class="site-header">
-  <a class="mark" href="#top">Ayumu Gibo</a>
+  <h1 class="site-title"><a class="mark" href="#top">Ayumu Gibo</a></h1>
   <nav class="nav" aria-label="ページ内リンク">
     <a href="#works">Works</a>
     <a href="#about">About</a>
@@ -234,24 +209,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 </header>
 
 <main id="top">
-  <section class="plate" aria-label="Ayumu Gibo">
-    <div class="plate-row">
-      <p>Video Director<br>Tokyo, Japan</p>
-      <p class="tc" id="tc" aria-hidden="true">TC 00:00:00:00 JST</p>
-    </div>
-    <h1 class="name"><span>Ayumu Gibo</span></h1>
-    <div class="plate-row">
-      <ul class="fields">
-        <li>Music Video</li>
-        <li>Commercial</li>
-        <li>Live Visual</li>
-        <li>Cover Art</li>
-        <li>AI Film</li>
-        <li>3DCG / VFX</li>
-      </ul>
-    </div>
-  </section>
-
   <section id="works" aria-labelledby="works-h">
     <div class="sec-head">
       <h2 id="works-h">Works</h2>
@@ -543,32 +500,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 <script>
 (() => {
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* Live timecode, Tokyo time at 24 fps */
-  const tc = document.getElementById('tc');
-  const p2 = n => String(n).padStart(2, '0');
-  const tick = () => {
-    const d = new Date(Date.now() + 9 * 36e5);
-    const ff = Math.floor(d.getUTCMilliseconds() * 24 / 1000);
-    tc.textContent = 'TC ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + ':' + p2(ff) + ' JST';
-  };
-  tick();
-  setInterval(tick, reduce ? 1000 : 42);
-
-  /* Fit the name to the plate width */
-  const name = document.querySelector('.name');
-  const inner = name.querySelector('span');
-  const fit = () => {
-    const avail = name.clientWidth;
-    if (!avail) return;
-    name.style.fontSize = '100px';
-    const w = inner.getBoundingClientRect().width;
-    if (w) name.style.fontSize = (100 * avail / w * 0.995) + 'px';
-  };
-  fit();
-  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(name.parentElement);
-  else window.addEventListener('resize', fit);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
   /* Thumbnails: try the large image, then the smaller one, then show the generated still underneath */
   const swapOrHide = img => {
