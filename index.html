@@ -142,7 +142,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .meta > div{min-width:0}
 .w-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(22px,2.1vw,28px);line-height:1.08;letter-spacing:.01em;text-wrap:balance}
 .feature .w-title{font-size:clamp(28px,3.4vw,44px)}
-.w-artist{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
 .w-cat{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 @container (max-width:420px){.meta{grid-template-columns:minmax(0,1fr)}}
 
@@ -268,26 +267,24 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <div class="meta">
           <div>
             <h3 class="w-title">LEX intro PV</h3>
-            <p class="w-artist">LEX</p>
           </div>
           <p class="w-cat">Promotion Video</p>
         </div>
       </a>
 
-      <a class="work vertical" href="https://vimeo.com/1234342394" target="_blank" rel="noopener"
-         data-provider="vimeo" data-id="1234342394" data-ratio="0.5625" data-title="TOYOTA ARENA公演 PR映像 / LEX">
+      <a class="work vertical" href="#works"
+         data-provider="vimeo" data-id="1234342394" data-ext="none" data-ratio="0.5625" data-title="TOYOTA ARENA公演 PR映像 / LEX">
         <div class="frame" data-seed="1234342394" data-h1="8" data-h2="338">
           <canvas aria-hidden="true"></canvas>
           <img src="https://i.vimeocdn.com/video/2210278114-2aeaef3d908aae23e613d56a5fd2d828d0a67c21cf62e0bd50208e17f221ca7d-d_720x1280"
                data-fallback="https://i.vimeocdn.com/video/2210278114-2aeaef3d908aae23e613d56a5fd2d828d0a67c21cf62e0bd50208e17f221ca7d-d_360x640"
                alt="" decoding="async">
-          <span class="f-tag" aria-hidden="true">Vimeo</span>
+          <span class="f-tag" aria-hidden="true">9:16</span>
           <span class="f-play" aria-hidden="true">Play ▶</span>
         </div>
         <div class="meta">
           <div>
             <h3 class="w-title">TOYOTA ARENA公演 PR映像</h3>
-            <p class="w-artist">LEX</p>
           </div>
           <p class="w-cat">Promotion Video</p>
         </div>
@@ -308,7 +305,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <div class="meta">
           <div>
             <h3 class="w-title">SURECHIGAI REMIX feat. Emi Meyer</h3>
-            <p class="w-artist">OZworld</p>
           </div>
           <p class="w-cat">Music Video</p>
         </div>
@@ -328,7 +324,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <div class="meta">
           <div>
             <h3 class="w-title">SURECHIGAI REMIX feat. Emi Meyer</h3>
-            <p class="w-artist">OZworld</p>
           </div>
           <p class="w-cat">Cover Art</p>
         </div>
@@ -349,7 +344,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <div class="meta">
           <div>
             <h3 class="w-title">ロデオ</h3>
-            <p class="w-artist">MIKADO HARKA ENEL</p>
           </div>
           <p class="w-cat">Music Video</p>
         </div>
@@ -368,7 +362,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <div class="meta">
           <div>
             <h3 class="w-title">First Aid feat. 5lack</h3>
-            <p class="w-artist">Loota</p>
           </div>
           <p class="w-cat">Music Video</p>
         </div>
@@ -586,7 +579,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       else v.autoplay = true;
       pFrame.replaceChildren(v);
     } else {
-      pExt.hidden = false;
+      pExt.hidden = card.dataset.ext === 'none';
       pExt.href = card.href;
       pExt.textContent = (provider === 'vimeo' ? 'Vimeo' : 'YouTube') + 'で開く ↗';
       const f = document.createElement('iframe');
