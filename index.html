@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room sheet — works in rows of two, each pair sharing one frame height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
+/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room sheet — works in rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -111,9 +111,15 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .work.vertical{--ar:.5625}
 .work.square{--ar:1}
 @media (min-width:700px){
-  .pair-row{flex-direction:row;align-items:flex-start;gap:clamp(16px,2vw,28px)}
-  /* flex-grow equals each frame's aspect ratio, so both frames in a row share one height */
+  .pair-row{flex-direction:row;align-items:flex-start;column-gap:clamp(16px,2vw,28px);row-gap:clamp(36px,4vw,56px)}
+  /* flex-grow equals each frame's aspect ratio, so every frame in a row shares one height */
   .pair-row > .work{flex:var(--ar) 1 0}
+}
+@media (min-width:700px) and (max-width:999px){
+  /* three-up rows: the vertical work drops to its own line as a side-by-side card */
+  .pair-row.trio{flex-wrap:wrap}
+  .pair-row.trio > .work.vertical{flex:1 1 100%;display:grid;grid-template-columns:min(30%,260px) minmax(0,1fr);align-items:end;gap:0 24px}
+  .pair-row.trio > .work.vertical .meta{padding-top:0}
 }
 @media (max-width:699px){
   .work.vertical{display:grid;grid-template-columns:min(42%,300px) minmax(0,1fr);align-items:end;gap:0 16px}
@@ -249,7 +255,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   <section id="works" aria-labelledby="works-h">
     <div class="sec-head">
       <h2 id="works-h">Works</h2>
-      <span class="count">6 titles</span>
+      <span class="count">7 titles</span>
     </div>
     <div class="works-grid">
 
@@ -291,7 +297,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </a>
       </div>
 
-      <div class="pair-row">
+      <div class="pair-row trio">
       <a class="work" href="https://www.youtube.com/watch?v=4A5ALrv4en8" target="_blank" rel="noopener"
          data-provider="youtube" data-id="4A5ALrv4en8" data-ratio="1.7778" data-title="OZworld - SURECHIGAI REMIX feat. Emi Meyer">
         <div class="frame" data-seed="4A5ALrv4en8" data-h1="268" data-h2="318">
@@ -311,7 +317,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </a>
 
       <a class="work square" href="assets/surechigai-cover.mp4" target="_blank" rel="noopener"
-         data-provider="file" data-poster="assets/surechigai-cover.jpg" data-ratio="1" data-title="OZworld - SURECHIGAI REMIX feat. Emi Meyer (Cover Art)">
+         data-provider="file" data-mp4="assets/surechigai-cover.mp4" data-webm="assets/surechigai-cover.webm" data-poster="assets/surechigai-cover.jpg" data-ratio="1" data-title="OZworld - SURECHIGAI REMIX feat. Emi Meyer (Cover Art)">
         <div class="frame">
           <video class="loop" poster="assets/surechigai-cover.jpg"
                  muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true">
@@ -326,6 +332,21 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
             <h3 class="w-title">OZworld - SURECHIGAI REMIX feat. Emi Meyer</h3>
           </div>
           <p class="w-cat">Cover Art</p>
+        </div>
+      </a>
+
+      <a class="work vertical" href="assets/ozworld-recap.mp4" target="_blank" rel="noopener"
+         data-provider="file" data-mp4="assets/ozworld-recap.mp4" data-webm="assets/ozworld-recap.webm" data-poster="assets/ozworld-recap.jpg" data-audio="1" data-ratio="0.5625" data-title="OZworld - TOYOTA ARENA公演 Live Recap">
+        <div class="frame">
+          <img src="assets/ozworld-recap.jpg" alt="" loading="lazy" decoding="async">
+          <span class="f-tag" aria-hidden="true">9:16</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">OZworld - TOYOTA ARENA公演 Live Recap</h3>
+          </div>
+          <p class="w-cat">Live Recap</p>
         </div>
       </a>
       </div>
@@ -568,16 +589,29 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     if (provider === 'file') {
       pExt.hidden = true;
       const v = document.createElement('video');
-      card.querySelectorAll('video.loop source').forEach(s => v.appendChild(s.cloneNode()));
+      [['mp4', 'video/mp4'], ['webm', 'video/webm']].forEach(([key, type]) => {
+        if (!card.dataset[key]) return;
+        const s = document.createElement('source');
+        s.src = card.dataset[key];
+        s.type = type;
+        v.appendChild(s);
+      });
       if (card.dataset.poster) v.poster = card.dataset.poster;
-      v.muted = true;
-      v.loop = true;
       v.playsInline = true;
       v.setAttribute('playsinline', '');
       v.setAttribute('aria-label', card.dataset.title || 'Video');
-      if (reduce) v.controls = true;
-      else v.autoplay = true;
       pFrame.replaceChildren(v);
+      if (card.dataset.audio) {
+        /* a cut with sound: show controls and start inside the click so audio is allowed */
+        v.controls = true;
+        const p = v.play();
+        if (p && p.catch) p.catch(() => {});
+      } else {
+        v.muted = true;
+        v.loop = true;
+        if (reduce) v.controls = true;
+        else { const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+      }
     } else {
       pExt.hidden = card.dataset.ext === 'none';
       pExt.href = card.href;
