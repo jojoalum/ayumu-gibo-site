@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room grid — a top row pairing a wide 16:9 work with a vertical 9:16 work at equal height, three works beneath, then About and Contact. Works play in an overlay player. */
+/* Layout: a chroma-blue title plate with tracking markers opens the page; below it a quiet grey edit-room sheet — works in rows of two, each pair sharing one frame height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -105,28 +105,27 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .count{font-family:var(--mono);font-size:12px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
 
 /* Works */
-.works-grid{display:grid;grid-template-columns:1fr;gap:clamp(36px,4vw,56px) clamp(16px,2vw,28px)}
-.feature-row{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px);min-width:0}
-.work{display:block;min-width:0;text-decoration:none}
-.work.vertical .frame{aspect-ratio:9/16}
-.work.vertical .meta{grid-template-columns:minmax(0,1fr)}
-@media (min-width:900px){
-  .works-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .feature-row{grid-column:1/-1;flex-direction:row;align-items:flex-start;gap:clamp(16px,2vw,28px)}
-  /* flex-grow set to each frame's aspect ratio, so both frames share one height */
-  .feature-row .work.feature{flex:1.7778 1 0}
-  .feature-row .work.vertical{flex:.5625 1 0}
+.works-grid{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)}
+.pair-row{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px);min-width:0}
+.work{display:block;min-width:0;text-decoration:none;--ar:1.7778;container-type:inline-size}
+.work.vertical{--ar:.5625}
+.work.square{--ar:1}
+@media (min-width:700px){
+  .pair-row{flex-direction:row;align-items:flex-start;gap:clamp(16px,2vw,28px)}
+  /* flex-grow equals each frame's aspect ratio, so both frames in a row share one height */
+  .pair-row > .work{flex:var(--ar) 1 0}
 }
-@media (max-width:899px){
-  .work.vertical{display:grid;grid-template-columns:min(42%,300px) minmax(0,1fr);align-items:end;gap:0 clamp(16px,3vw,24px)}
+@media (max-width:699px){
+  .work.vertical{display:grid;grid-template-columns:min(42%,300px) minmax(0,1fr);align-items:end;gap:0 16px}
   .work.vertical .meta{padding-top:0}
 }
 .work:focus-visible{outline-offset:6px}
-.frame{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:var(--frame-bg)}
+.frame{position:relative;aspect-ratio:var(--ar);max-width:100%;overflow:hidden;background:var(--frame-bg)}
 .frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.frame img,.frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s cubic-bezier(.2,.7,.2,1)}
 .frame img.is-missing{visibility:hidden}
-.work:hover .frame img,.work:focus-visible .frame img{transform:scale(1.035)}
+.work:hover .frame img,.work:focus-visible .frame img,
+.work:hover .frame video,.work:focus-visible .frame video{transform:scale(1.035)}
 .frame::before{
   content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(to bottom,var(--frame-shade),transparent 34%);
@@ -145,6 +144,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .feature .w-title{font-size:clamp(28px,3.4vw,44px)}
 .w-artist{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
 .w-cat{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+@container (max-width:420px){.meta{grid-template-columns:minmax(0,1fr)}}
 
 /* About */
 .about-body{display:grid;grid-template-columns:1fr;gap:clamp(28px,4vw,48px)}
@@ -205,13 +205,15 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 }
 .player-actions a:hover,.player-actions button:hover{border-bottom-color:var(--frame-ink)}
 .player-frame{position:relative;width:100%;aspect-ratio:var(--ratio,1.7778);background:var(--frame-bg)}
-.player-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player-frame iframe,.player-frame video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player-frame video{object-fit:contain}
 
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
   .tc::before{animation:none}
-  .frame img{transition:none}
-  .work:hover .frame img,.work:focus-visible .frame img{transform:none}
+  .frame img,.frame video{transition:none}
+  .work:hover .frame img,.work:focus-visible .frame img,
+  .work:hover .frame video,.work:focus-visible .frame video{transform:none}
 }
 </style>
 </head>
@@ -238,6 +240,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <li>Music Video</li>
         <li>Commercial</li>
         <li>Live Visual</li>
+        <li>Cover Art</li>
         <li>AI Film</li>
         <li>3DCG / VFX</li>
       </ul>
@@ -247,11 +250,11 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   <section id="works" aria-labelledby="works-h">
     <div class="sec-head">
       <h2 id="works-h">Works</h2>
-      <span class="count">5 titles</span>
+      <span class="count">6 titles</span>
     </div>
     <div class="works-grid">
 
-      <div class="feature-row">
+      <div class="pair-row">
       <a class="work feature" href="https://vimeo.com/1234326957" target="_blank" rel="noopener"
          data-provider="vimeo" data-id="1234326957" data-ratio="1.4333" data-title="LEX intro PV / LEX">
         <div class="frame" data-seed="1234326957" data-h1="214" data-h2="188">
@@ -291,25 +294,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </a>
       </div>
 
-      <a class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
-         data-provider="youtube" data-id="z9OEtHuGm4I" data-ratio="1.7778" data-title="ロデオ / MIKADO HARKA ENEL">
-        <div class="frame" data-seed="z9OEtHuGm4I" data-h1="22" data-h2="40">
-          <canvas aria-hidden="true"></canvas>
-          <img src="https://i.ytimg.com/vi/z9OEtHuGm4I/maxresdefault.jpg"
-               data-fallback="https://i.ytimg.com/vi/z9OEtHuGm4I/hqdefault.jpg"
-               alt="" loading="lazy" decoding="async">
-          <span class="f-tag" aria-hidden="true">YouTube</span>
-          <span class="f-play" aria-hidden="true">Play ▶</span>
-        </div>
-        <div class="meta">
-          <div>
-            <h3 class="w-title">ロデオ</h3>
-            <p class="w-artist">MIKADO HARKA ENEL</p>
-          </div>
-          <p class="w-cat">Music Video</p>
-        </div>
-      </a>
-
+      <div class="pair-row">
       <a class="work" href="https://www.youtube.com/watch?v=4A5ALrv4en8" target="_blank" rel="noopener"
          data-provider="youtube" data-id="4A5ALrv4en8" data-ratio="1.7778" data-title="SURECHIGAI REMIX feat. Emi Meyer / OZworld">
         <div class="frame" data-seed="4A5ALrv4en8" data-h1="268" data-h2="318">
@@ -324,6 +309,47 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
           <div>
             <h3 class="w-title">SURECHIGAI REMIX feat. Emi Meyer</h3>
             <p class="w-artist">OZworld</p>
+          </div>
+          <p class="w-cat">Music Video</p>
+        </div>
+      </a>
+
+      <a class="work square" href="assets/surechigai-cover.mp4" target="_blank" rel="noopener"
+         data-provider="file" data-poster="assets/surechigai-cover.jpg" data-ratio="1" data-title="SURECHIGAI REMIX feat. Emi Meyer / OZworld (Cover Art)">
+        <div class="frame">
+          <video class="loop" poster="assets/surechigai-cover.jpg"
+                 muted loop playsinline preload="metadata" disablepictureinpicture disableremoteplayback aria-hidden="true">
+            <source src="assets/surechigai-cover.mp4" type="video/mp4">
+            <source src="assets/surechigai-cover.webm" type="video/webm">
+          </video>
+          <span class="f-tag" aria-hidden="true">Motion</span>
+          <span class="f-play" aria-hidden="true">View ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">SURECHIGAI REMIX feat. Emi Meyer</h3>
+            <p class="w-artist">OZworld</p>
+          </div>
+          <p class="w-cat">Cover Art</p>
+        </div>
+      </a>
+      </div>
+
+      <div class="pair-row">
+      <a class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
+         data-provider="youtube" data-id="z9OEtHuGm4I" data-ratio="1.7778" data-title="ロデオ / MIKADO HARKA ENEL">
+        <div class="frame" data-seed="z9OEtHuGm4I" data-h1="22" data-h2="40">
+          <canvas aria-hidden="true"></canvas>
+          <img src="https://i.ytimg.com/vi/z9OEtHuGm4I/maxresdefault.jpg"
+               data-fallback="https://i.ytimg.com/vi/z9OEtHuGm4I/hqdefault.jpg"
+               alt="" loading="lazy" decoding="async">
+          <span class="f-tag" aria-hidden="true">YouTube</span>
+          <span class="f-play" aria-hidden="true">Play ▶</span>
+        </div>
+        <div class="meta">
+          <div>
+            <h3 class="w-title">ロデオ</h3>
+            <p class="w-artist">MIKADO HARKA ENEL</p>
           </div>
           <p class="w-cat">Music Video</p>
         </div>
@@ -347,6 +373,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
           <p class="w-cat">Music Video</p>
         </div>
       </a>
+      </div>
 
     </div>
   </section>
@@ -365,7 +392,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         <dt>Based</dt>
         <dd>Tokyo, Japan</dd>
         <dt>Fields</dt>
-        <dd>Music Video / Commercial / Live Visual / AI Film / 3DCG・VFX</dd>
+        <dd>Music Video / Commercial / Live Visual / Cover Art / AI Film / 3DCG・VFX</dd>
         <dt>Artists</dt>
         <dd>LEX / OZworld / MIKADO HARKA ENEL / Loota / 5lack</dd>
       </dl>
@@ -492,6 +519,20 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     if ('ResizeObserver' in window) new ResizeObserver(() => drawStill(frame)).observe(frame);
   });
 
+  /* Looping cover art: play only while on screen, never under reduced motion */
+  document.querySelectorAll('.frame video.loop').forEach(v => {
+    v.muted = true;
+    if (reduce) return;
+    const play = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); };
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) play(); else v.pause(); });
+      }, { threshold: 0.25 }).observe(v);
+    } else {
+      play();
+    }
+  });
+
   /* Copy e-mail address */
   const mail = document.getElementById('mail');
   const copyBtn = document.getElementById('copy');
@@ -530,16 +571,32 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     const provider = card.dataset.provider;
     lastFocus = card;
     pTitle.textContent = card.dataset.title || '';
-    pExt.href = card.href;
-    pExt.textContent = (provider === 'vimeo' ? 'Vimeo' : 'YouTube') + 'で開く ↗';
     player.style.setProperty('--ratio', card.dataset.ratio || '1.7778');
-    const f = document.createElement('iframe');
-    f.src = embedUrl(provider, card.dataset.id);
-    f.title = card.dataset.title || 'Video';
-    f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
-    f.allowFullscreen = true;
-    f.referrerPolicy = 'strict-origin-when-cross-origin';
-    pFrame.replaceChildren(f);
+    if (provider === 'file') {
+      pExt.hidden = true;
+      const v = document.createElement('video');
+      card.querySelectorAll('video.loop source').forEach(s => v.appendChild(s.cloneNode()));
+      if (card.dataset.poster) v.poster = card.dataset.poster;
+      v.muted = true;
+      v.loop = true;
+      v.playsInline = true;
+      v.setAttribute('playsinline', '');
+      v.setAttribute('aria-label', card.dataset.title || 'Video');
+      if (reduce) v.controls = true;
+      else v.autoplay = true;
+      pFrame.replaceChildren(v);
+    } else {
+      pExt.hidden = false;
+      pExt.href = card.href;
+      pExt.textContent = (provider === 'vimeo' ? 'Vimeo' : 'YouTube') + 'で開く ↗';
+      const f = document.createElement('iframe');
+      f.src = embedUrl(provider, card.dataset.id);
+      f.title = card.dataset.title || 'Video';
+      f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+      f.allowFullscreen = true;
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      pFrame.replaceChildren(f);
+    }
     player.hidden = false;
     document.documentElement.classList.add('is-locked');
     outside.forEach(el => { if (el) el.inert = true; });
@@ -555,7 +612,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     if (lastFocus) lastFocus.focus();
   };
 
-  document.querySelectorAll('.work[data-id]').forEach(card => {
+  document.querySelectorAll('.work[data-provider]').forEach(card => {
     card.addEventListener('click', e => {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
