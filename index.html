@@ -98,8 +98,13 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   .pair-row.trio > .work.vertical .meta{padding-top:0}
 }
 @media (max-width:699px){
-  .work.vertical{display:grid;grid-template-columns:min(42%,300px) minmax(0,1fr);align-items:end;gap:0 16px}
-  .work.vertical .meta{padding-top:0}
+  /* iPhone: one thumbnail feed in a set order (--mo on each card); the two vertical works share a row */
+  .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .pair-row{display:contents}
+  .works-grid .work{grid-column:1/-1;order:var(--mo,0);position:relative}
+  .works-grid .work.vertical{grid-column:auto}
+  /* titles stay in the page for screen readers, hidden from view */
+  .works-grid .meta{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 }
 .work:focus-visible{outline-offset:6px}
 .frame{position:relative;aspect-ratio:var(--ar);max-width:100%;overflow:hidden;background:var(--frame-bg)}
@@ -217,7 +222,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     <div class="works-grid">
 
       <div class="pair-row">
-      <a class="work feature" href="#works"
+      <a style="--mo:1" class="work feature" href="#works"
          data-provider="vimeo" data-id="1234326957" data-ext="none" data-ratio="1.4333" data-title="LEX - intro PV">
         <div class="frame" data-seed="1234326957" data-h1="214" data-h2="188">
           <canvas aria-hidden="true"></canvas>
@@ -235,7 +240,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work vertical" href="#works"
+      <a style="--mo:7" class="work vertical" href="#works"
          data-provider="vimeo" data-id="1234342394" data-ext="none" data-ratio="0.5625" data-title="LEX - TOYOTA ARENA公演 PR映像">
         <div class="frame" data-seed="1234342394" data-h1="8" data-h2="338">
           <canvas aria-hidden="true"></canvas>
@@ -255,7 +260,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </div>
 
       <div class="pair-row trio">
-      <a class="work" href="https://www.youtube.com/watch?v=4A5ALrv4en8" target="_blank" rel="noopener"
+      <a style="--mo:2" class="work" href="https://www.youtube.com/watch?v=4A5ALrv4en8" target="_blank" rel="noopener"
          data-provider="youtube" data-id="4A5ALrv4en8" data-ratio="1.7778" data-title="OZworld - SURECHIGAI REMIX feat. Emi Meyer">
         <div class="frame" data-seed="4A5ALrv4en8" data-h1="268" data-h2="318">
           <canvas aria-hidden="true"></canvas>
@@ -273,7 +278,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work square" href="assets/surechigai-cover.mp4" target="_blank" rel="noopener"
+      <a style="--mo:5" class="work square" href="assets/surechigai-cover.mp4" target="_blank" rel="noopener"
          data-provider="file" data-mp4="assets/surechigai-cover.mp4" data-webm="assets/surechigai-cover.webm" data-poster="assets/surechigai-cover.jpg" data-ratio="1" data-title="OZworld - SURECHIGAI REMIX feat. Emi Meyer (Cover Art)">
         <div class="frame">
           <video class="loop" poster="assets/surechigai-cover.jpg"
@@ -292,7 +297,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work vertical" href="assets/ozworld-recap.mp4" target="_blank" rel="noopener"
+      <a style="--mo:6" class="work vertical" href="assets/ozworld-recap.mp4" target="_blank" rel="noopener"
          data-provider="file" data-mp4="assets/ozworld-recap.mp4" data-webm="assets/ozworld-recap.webm" data-poster="assets/ozworld-recap.jpg" data-audio="1" data-ratio="0.5625" data-title="OZworld - TOYOTA ARENA公演 Live Recap">
         <div class="frame">
           <img src="assets/ozworld-recap.jpg" alt="" loading="lazy" decoding="async">
@@ -309,7 +314,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </div>
 
       <div class="pair-row">
-      <a class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
+      <a style="--mo:3" class="work" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" target="_blank" rel="noopener"
          data-provider="youtube" data-id="z9OEtHuGm4I" data-ratio="1.7778" data-title="MIKADO HARKA ENEL - ロデオ">
         <div class="frame" data-seed="z9OEtHuGm4I" data-h1="22" data-h2="40">
           <canvas aria-hidden="true"></canvas>
@@ -327,7 +332,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work" href="https://www.youtube.com/watch?v=V5lGv6_ysI0" target="_blank" rel="noopener"
+      <a style="--mo:4" class="work" href="https://www.youtube.com/watch?v=V5lGv6_ysI0" target="_blank" rel="noopener"
          data-provider="youtube" data-id="V5lGv6_ysI0" data-ratio="1.7778" data-title="Loota - First Aid feat. 5lack">
         <div class="frame" data-seed="V5lGv6_ysI0" data-h1="160" data-h2="96">
           <canvas aria-hidden="true"></canvas>
@@ -347,7 +352,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </div>
 
       <div class="pair-row">
-      <a class="work" href="https://www.youtube.com/watch?v=mQBGKid0ODg" target="_blank" rel="noopener"
+      <a style="--mo:12" class="work" href="https://www.youtube.com/watch?v=mQBGKid0ODg" target="_blank" rel="noopener"
          data-provider="youtube" data-id="mQBGKid0ODg" data-ratio="1.7778" data-title="KUJA - SUPER SAIYAN">
         <div class="frame" data-seed="mQBGKid0ODg" data-h1="46" data-h2="20">
           <canvas aria-hidden="true"></canvas>
@@ -365,12 +370,12 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work" href="https://www.youtube.com/watch?v=u-MQuw5Phrc" target="_blank" rel="noopener"
+      <a style="--mo:10" class="work" href="https://www.youtube.com/watch?v=u-MQuw5Phrc" target="_blank" rel="noopener"
          data-provider="youtube" data-id="u-MQuw5Phrc" data-ratio="1.7778" data-title="KUJA - ESCAPE feat. DALU">
         <div class="frame" data-seed="u-MQuw5Phrc" data-h1="250" data-h2="200">
           <canvas aria-hidden="true"></canvas>
-          <img src="https://i.ytimg.com/vi/u-MQuw5Phrc/maxresdefault.jpg"
-               data-fallback="https://i.ytimg.com/vi/u-MQuw5Phrc/hqdefault.jpg"
+          <img src="https://i.ytimg.com/vi/u-MQuw5Phrc/maxres2.jpg"
+               data-fallback="https://i.ytimg.com/vi/u-MQuw5Phrc/hq2.jpg"
                alt="" loading="lazy" decoding="async">
           <span class="f-tag" aria-hidden="true">YouTube</span>
           <span class="f-play" aria-hidden="true">Play ▶</span>
@@ -385,7 +390,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       </div>
 
       <div class="pair-row">
-      <a class="work" href="https://www.youtube.com/watch?v=Mz40xvYicYc" target="_blank" rel="noopener"
+      <a style="--mo:9" class="work" href="https://www.youtube.com/watch?v=Mz40xvYicYc" target="_blank" rel="noopener"
          data-provider="youtube" data-id="Mz40xvYicYc" data-ratio="1.7778" data-title="iCE KiD - SMOKIN’ ROOM feat. Glamour Dalie">
         <div class="frame" data-seed="Mz40xvYicYc" data-h1="190" data-h2="230">
           <canvas aria-hidden="true"></canvas>
@@ -403,7 +408,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work" href="https://www.youtube.com/watch?v=FF_y03bg53M" target="_blank" rel="noopener"
+      <a style="--mo:8" class="work" href="https://www.youtube.com/watch?v=FF_y03bg53M" target="_blank" rel="noopener"
          data-provider="youtube" data-id="FF_y03bg53M" data-ratio="1.7778" data-title="TEN'S UNIQUE - NEXT STAGE">
         <div class="frame" data-seed="FF_y03bg53M" data-h1="300" data-h2="330">
           <canvas aria-hidden="true"></canvas>
@@ -421,7 +426,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
         </div>
       </a>
 
-      <a class="work" href="https://www.youtube.com/watch?v=bts0wOzwns0" target="_blank" rel="noopener"
+      <a style="--mo:11" class="work" href="https://www.youtube.com/watch?v=bts0wOzwns0" target="_blank" rel="noopener"
          data-provider="youtube" data-id="bts0wOzwns0" data-ratio="1.7778" data-title="SUNNY YAMAMOTO - UNKNOWN">
         <div class="frame" data-seed="bts0wOzwns0" data-h1="340" data-h2="8">
           <canvas aria-hidden="true"></canvas>
