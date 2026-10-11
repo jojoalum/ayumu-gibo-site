@@ -11,7 +11,8 @@
 <meta property="og:description" content="東京を拠点に活動する映像ディレクター、Ayumu Giboのポートフォリオ。ミュージックビデオ、広告、ライブ映像。">
 <!-- 公開URLが決まったら、og:url と og:image（1200×630の画像URL）をここに追加 -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#1B3BFF">
+<meta name="theme-color" content="#ECEDF1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C0E13" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231B3BFF'/%3E%3Cpath d='M22 32h20M32 22v20' stroke='%23ffffff' stroke-width='4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +20,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: the page opens straight on the works — a quiet grey edit-room sheet with rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1), then About and Contact. Works play in an overlay player. */
+/* Layout: a plain name header, then the works straight away — a quiet grey sheet of thumbnails in rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1); titles appear over a thumbnail on hover or first tap; then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -59,19 +60,20 @@ a{color:inherit}
 ::selection{background:var(--chroma);color:var(--on-chroma)}
 a:focus-visible,button:focus-visible{outline:2px solid var(--chroma);outline-offset:4px}
 
-/* Header */
+/* Header: just the name and the section links */
 .site-header{
   position:sticky;top:env(safe-area-inset-top,0px);z-index:10;
   display:flex;justify-content:space-between;align-items:center;gap:16px;
-  padding-block:14px;background:var(--bg);border-bottom:1px solid var(--line);
+  padding-block:clamp(18px,2.6vw,32px);background:var(--bg);
 }
-.mark{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.03em;text-transform:uppercase;text-decoration:none;line-height:1}
+.mark{font-family:var(--display);font-weight:600;font-size:clamp(18px,2vw,26px);letter-spacing:.22em;text-transform:uppercase;text-decoration:none;line-height:1;white-space:nowrap}
 .nav{display:flex;gap:clamp(14px,2.6vw,32px);font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase}
 .nav a{text-decoration:none;color:var(--muted);transition:color .2s}
 .nav a:hover{color:var(--fg)}
 
 .site-title{margin:0;font:inherit;line-height:1}
-main{display:flex;flex-direction:column;gap:clamp(72px,11vw,160px);padding-block:clamp(40px,6vw,88px) clamp(64px,8vw,120px)}
+main{display:flex;flex-direction:column;gap:clamp(72px,11vw,160px);padding-block:clamp(4px,1vw,16px) clamp(64px,8vw,120px)}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 
 /* Section heads */
 .sec-head{
@@ -82,40 +84,22 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .count{font-family:var(--mono);font-size:12px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
 
 /* Works */
-.works-grid{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px)}
-.pair-row{display:flex;flex-direction:column;gap:clamp(36px,4vw,56px);min-width:0}
-.work{display:block;min-width:0;text-decoration:none;--ar:1.7778;container-type:inline-size}
+.works-grid{display:flex;flex-direction:column;gap:clamp(12px,2vw,28px)}
+.pair-row{display:flex;flex-direction:column;gap:clamp(12px,2vw,28px);min-width:0}
+.work{display:block;position:relative;min-width:0;text-decoration:none;--ar:1.7778;container-type:inline-size}
 .work.vertical{--ar:.5625}
 .work.square{--ar:1}
 @media (min-width:700px){
-  .pair-row{flex-direction:row;align-items:flex-start;column-gap:clamp(16px,2vw,28px);row-gap:clamp(36px,4vw,56px)}
+  .pair-row{flex-direction:row;align-items:flex-start}
   /* flex-grow equals each frame's aspect ratio, so every frame in a row shares one height */
   .pair-row > .work{flex:var(--ar) 1 0}
-}
-@media (min-width:700px) and (max-width:999px){
-  /* three-up rows: the vertical work drops to its own line as a side-by-side card */
-  .pair-row.trio{flex-wrap:wrap}
-  .pair-row.trio > .work.vertical{flex:1 1 100%;display:grid;grid-template-columns:min(30%,260px) minmax(0,1fr);align-items:end;gap:0 24px}
-  .pair-row.trio > .work.vertical .meta{padding-top:0}
 }
 @media (max-width:699px){
   /* iPhone: one feed in a set order (--mo on each card); the two vertical works share a row */
   .works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .pair-row{display:contents}
-  .works-grid .work{grid-column:1/-1;order:var(--mo,0);position:relative}
+  .works-grid .work{grid-column:1/-1;order:var(--mo,0)}
   .works-grid .work.vertical{grid-column:auto}
-  /* titles sit over the thumbnail and appear on the first tap; the second tap plays */
-  .works-grid .meta{
-    position:absolute;left:0;right:0;bottom:0;z-index:2;
-    grid-template-columns:minmax(0,1fr);gap:4px;padding:36px 12px 12px;
-    background:linear-gradient(to top,var(--frame-fade),transparent);
-    opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;
-  }
-  .works-grid .work.is-revealed .meta,
-  .works-grid .work:focus-visible .meta{opacity:1;transform:none}
-  .works-grid .work .w-title{font-size:20px;color:var(--frame-ink)}
-  .works-grid .work.vertical .w-title{font-size:17px}
-  .works-grid .work .w-cat{color:var(--frame-ink);opacity:.75}
 }
 .work:focus-visible{outline-offset:6px}
 .frame{position:relative;aspect-ratio:var(--ar);max-width:100%;overflow:hidden;background:var(--frame-bg)}
@@ -136,12 +120,23 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .f-play{right:14px;opacity:.8;transition:opacity .25s;border-bottom:1px solid transparent}
 .work:hover .f-play,.work:focus-visible .f-play{opacity:1;border-bottom-color:var(--frame-ink)}
 
-.meta{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:6px 16px;padding-top:14px}
+/* Title and category sit over the thumbnail: shown on hover with a mouse, on the first tap on touch screens */
+.meta{
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:4px 16px;
+  padding:48px clamp(12px,1.4vw,20px) clamp(12px,1.4vw,18px);
+  background:linear-gradient(to top,var(--frame-fade),transparent);
+  opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;
+}
+.work.is-revealed .meta,.work:focus-visible .meta{opacity:1;transform:none}
+@media (hover:hover){.work:hover .meta{opacity:1;transform:none}}
 .meta > div{min-width:0}
-.w-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(22px,2.1vw,28px);line-height:1.08;letter-spacing:.01em;text-wrap:balance}
-.feature .w-title{font-size:clamp(28px,3.4vw,44px)}
-.w-cat{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.w-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.1vw,28px);line-height:1.08;letter-spacing:.01em;text-wrap:balance;color:var(--frame-ink)}
+.feature .w-title{font-size:clamp(22px,3vw,40px)}
+.w-cat{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--frame-ink);opacity:.75;white-space:nowrap}
 @container (max-width:420px){.meta{grid-template-columns:minmax(0,1fr)}}
+@container (max-width:200px){.w-title{font-size:16px}.meta{padding-inline:10px}}
+@container (max-width:140px){.f-play{display:none}}
 
 /* About */
 .about-body{display:grid;grid-template-columns:1fr;gap:clamp(28px,4vw,48px)}
@@ -207,7 +202,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
 @media (prefers-reduced-motion: reduce){
   html{scroll-behavior:auto}
-  .works-grid .meta{transition:none}
+  .meta{transition:none}
   .frame img,.frame video{transition:none}
   .work:hover .frame img,.work:focus-visible .frame img,
   .work:hover .frame video,.work:focus-visible .frame video{transform:none}
@@ -227,10 +222,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
 <main id="top">
   <section id="works" aria-labelledby="works-h">
-    <div class="sec-head">
-      <h2 id="works-h">Works</h2>
-      <span class="count">12 titles</span>
-    </div>
+    <h2 id="works-h" class="visually-hidden">Works</h2>
     <div class="works-grid">
 
       <div class="pair-row">
@@ -679,15 +671,16 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     if (lastFocus) lastFocus.focus();
   };
 
-  /* On the iPhone layout the first tap shows a work's title, the second opens the player */
-  const narrow = window.matchMedia('(max-width: 699px)');
+  /* With a mouse, hovering shows the title and a click plays.
+     On touch screens the first tap shows the title and the second opens the player. */
+  const canHover = window.matchMedia('(hover: hover)');
   const cards = document.querySelectorAll('.work[data-provider]');
   const hideTitles = except => cards.forEach(c => { if (c !== except) c.classList.remove('is-revealed'); });
   cards.forEach(card => {
     card.addEventListener('click', e => {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      if (narrow.matches && !card.classList.contains('is-revealed')) {
+      if (!canHover.matches && !card.classList.contains('is-revealed')) {
         hideTitles(card);
         card.classList.add('is-revealed');
         return;
