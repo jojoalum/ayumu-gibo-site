@@ -1,10 +1,10 @@
-/* Cover in WebGL: nine glass-and-aluminium desktop monitors on a looping ring.
+/* Cover in WebGL: nine clear-acrylic desktop monitors on a looping ring over a glossy studio floor.
    Swipe/drag, sideways trackpad scroll, the ‹ › buttons or arrow keys turn it; the monitor that comes to
    the front grows. When the ring rests, the front screen plays its video muted in a player laid flat
    over that screen (video iframes cannot be WebGL textures). Falls back to the CSS ring on any failure. */
 import * as THREE from './vendor/three/three.module.min.js';
-import { RoomEnvironment } from './vendor/three/RoomEnvironment.js';
 import { RoundedBoxGeometry } from './vendor/three/RoundedBoxGeometry.js';
+import { Reflector } from './vendor/three/Reflector.js';
 
 const site = window.__site;
 const cover = document.getElementById('cover');
@@ -54,165 +54,234 @@ function start() {
   canvas.setAttribute('aria-hidden', 'true');
   stage.prepend(canvas);
   const touch = !canHover.matches;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, touch ? 1.75 : 2));
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  const DPR = Math.min(window.devicePixelRatio || 1, touch ? 1.75 : 2);
+  renderer.setPixelRatio(DPR);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.VSMShadowMap;
+  renderer.toneMappingExposure = 1.12;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = pmrem.fromScene(studioEnvironment(), 0.03).texture;
   pmrem.dispose();
+
+  /* the canvas is opaque (clear acrylic needs something to refract), so it takes the page colour */
+  const bgColor = new THREE.Color();
+  const syncBackground = () => {
+    bgColor.setStyle(getComputedStyle(document.body).backgroundColor);
+    scene.background = bgColor;
+    renderer.setClearColor(bgColor, 1);   // the transmission pass clears to this, so acrylic shows the page behind it
+    floor.material.uniforms.uBg.value.copy(bgColor);
+    requestRender();
+  };
 
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
 
-  /* low key light from the upper left throws long soft shadows across the floor */
-  const key = new THREE.DirectionalLight(0xffffff, 2.4);
-  key.position.set(-5, 5.5, 6);
-  key.castShadow = true;
-  key.shadow.mapSize.set(touch ? 1024 : 2048, touch ? 1024 : 2048);
-  Object.assign(key.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 0.5, far: 25 });
-  key.shadow.bias = -0.0006;
-  key.shadow.normalBias = 0.02;
-  key.shadow.radius = 9;
-  key.shadow.blurSamples = 16;
+  /* soft high-key light from the upper left */
+  const key = new THREE.DirectionalLight(0xffffff, 1.7);
+  key.position.set(-4, 7, 6);
   scene.add(key);
-  scene.add(key.target);
-  key.target.position.set(0, 0, 1.2);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.6);
+  fill.position.set(5, 3, 4);
+  scene.add(fill);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.17 }));
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
+  /* glossy studio floor, opaque so the acrylic sees it: the page colour, soft contact shadows worked out
+     per monitor in the shader, and (on desktop) a mirror reflection that fades away from each stand */
+  const monUniform = Array.from({ length: N }, () => new THREE.Vector4(0, 0, 0, 1));
+  const floorShader = withReflection => ({
+    name: 'StudioFloor',
+    uniforms: {
+      color: { value: null }, tDiffuse: { value: null }, textureMatrix: { value: null },
+      uBg: { value: new THREE.Color() }, uMon: { value: monUniform }, uRefl: { value: 0.24 }, uShade: { value: 1 }
+    },
+    vertexShader: `
+      uniform mat4 textureMatrix;
+      varying vec4 vUv;
+      varying vec3 vWorld;
+      void main() {
+        ${withReflection ? 'vUv = textureMatrix * vec4(position, 1.0);' : 'vUv = vec4(0.0);'}
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vWorld = w.xyz;
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }`,
+    fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform vec3 uBg;
+      uniform vec4 uMon[${N}];
+      uniform float uRefl;
+      uniform float uShade;
+      varying vec4 vUv;
+      varying vec3 vWorld;
+      float rbox(vec2 p, vec2 b, float r) {
+        vec2 q = abs(p) - b + r;
+        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+      }
+      void main() {
+        float shade = 0.0, near = 0.0;
+        for (int i = 0; i < ${N}; i++) {
+          vec4 m = uMon[i];                       // x, z, facing angle, scale
+          vec2 d = vWorld.xz - m.xy;
+          float c = cos(m.z), s = sin(m.z);
+          vec2 l = vec2(d.x * c - d.y * s, d.x * s + d.y * c) / m.w;
+          float plinth = rbox(l, vec2(0.34, 0.15), 0.012);
+          float body = rbox(l - vec2(0.05, -0.04), vec2(0.44, 0.13), 0.1);
+          float contact = 0.1 * (1.0 - smoothstep(-0.03, 0.025, plinth));
+          float spread = 0.09 * exp(-max(body, 0.0) / 0.16);
+          shade = max(shade, contact + spread - contact * spread);
+          near = max(near, exp(-max(plinth, 0.0) / 0.42));
+        }
+        vec3 col = uBg;
+        ${withReflection ? 'col = mix(col, texture2DProj(tDiffuse, vUv).rgb, uRefl * near);' : ''}
+        col *= 1.0 - shade * uShade;
+        gl_FragColor = vec4(col, 1.0);
+        #include <colorspace_fragment>
+      }`
+  });
+  let floor, reflect = null;
+  if (touch) {
+    /* phones skip the mirror pass */
+    const sh = floorShader(false);
+    floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShaderMaterial({ ...sh, toneMapped: false }));
+  } else {
+    floor = new Reflector(new THREE.PlaneGeometry(40, 40), { clipBias: 0.002, multisample: 0, textureWidth: 512, textureHeight: 512, shader: floorShader(true) });
+    floor.material.toneMapped = false;
+    floor.material.uniforms.uMon.value = monUniform;
+    /* the reflection is rendered before the frame, not inside it: a nested render during the transmission
+       pass would overwrite the buffer the acrylic samples */
+    reflect = floor.onBeforeRender;
+    floor.onBeforeRender = () => {};
+  }
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
 
   /* ---------- materials ---------- */
-  const grain = grainTexture();
-  /* bead-blasted aluminium: bright, satin, with a fine grain */
-  const alu = new THREE.MeshStandardMaterial({ color: 0xeceef0, metalness: 0.88, roughness: 0.52, roughnessMap: grain, bumpMap: grain, bumpScale: 0.0009, envMapIntensity: 1.25 });
-  const glass = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.05, transparent: true, opacity: 0.14,
-    clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.5, depthWrite: false, side: THREE.DoubleSide
-  });
-  /* the pane in front of the display reflects only faintly, so the picture stays deep */
-  const frontGlass = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 0, roughness: 0.02, transparent: true, opacity: 0.05,
-    clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 0.55, depthWrite: false
-  });
-  /* acrylic plinth: a faint green-grey edge tint so it reads against a light floor */
+  /* clear acrylic: thin refraction on the plates (so the screen lines up with the video overlay),
+     more on the plinth; not tone-mapped, so what shows through keeps its true colour */
   const acrylic = new THREE.MeshPhysicalMaterial({
-    color: 0xd6e9e6, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.38,
-    clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.3, depthWrite: false
+    color: 0xffffff, metalness: 0, roughness: 0, transmission: 1, thickness: 0.01, ior: 1.49,
+    specularIntensity: 1, envMapIntensity: 1, toneMapped: false,
+    attenuationColor: new THREE.Color(0xe4f2ef), attenuationDistance: 0.6
   });
-  const black = new THREE.MeshStandardMaterial({ color: 0x101114, metalness: 0.35, roughness: 0.42 });
-  const panel = new THREE.MeshStandardMaterial({ color: 0x08090b, metalness: 0.4, roughness: 0.28 });
-  const chrome = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.16 });
-  const ledOff = new THREE.MeshStandardMaterial({ color: 0x8d9198, metalness: 0.2, roughness: 0.4 });
-  const ledOn = new THREE.MeshBasicMaterial({ color: 0xff3b30, toneMapped: false });
+  const acrylicThick = acrylic.clone();
+  acrylicThick.thickness = 0.05;
+  const chrome = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1, roughness: 0.06, envMapIntensity: 1 });
+  const satin = new THREE.MeshStandardMaterial({ color: 0xe9ebee, metalness: 0.6, roughness: 0.35 });
+  const grilleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, map: grilleTexture(), metalness: 0.5, roughness: 0.45 });
+  const sideGrilleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, map: grilleTexture(true), metalness: 0.5, roughness: 0.45 });
+  const plateMat = new THREE.MeshStandardMaterial({ color: 0xf7f7f8, metalness: 0, roughness: 0.45 });
+  const boardMat = new THREE.MeshStandardMaterial({ color: 0xf1f2f4, metalness: 0.1, roughness: 0.5 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x0d0e10, metalness: 0.2, roughness: 0.38 });
+  const panel = new THREE.MeshStandardMaterial({ color: 0x07080a, metalness: 0.3, roughness: 0.25 });
+  const slot = new THREE.MeshBasicMaterial({ color: 0x3a3c40 });
+  const ledOff = new THREE.MeshStandardMaterial({ color: 0xc4352d, roughness: 0.4 });
+  const ledOn = new THREE.MeshBasicMaterial({ color: 0xff2a20, toneMapped: false });
 
-  /* ---------- one monitor (width 1, origin on the floor, screen facing +z) ---------- */
-  const D = 0.17, FW = 0.03, BASE_H = 0.11, GAP = 0.03;
-  const SW = 0.88, SH = SW * 9 / 16;
-  const FEET = 0.064, PLINTH_Y = 0.045, POST_H = 0.2;
-  const BOX_Y0 = PLINTH_Y + 0.007 + POST_H;              // underside of the base
-  const BOX_H = BASE_H + GAP + SH + GAP + FW;
-  const BOX_Y1 = BOX_Y0 + BOX_H;
-  const SCREEN_Y = BOX_Y0 + BASE_H + GAP + SH / 2;
-  const SCREEN_Z = 0.026;
+  /* ---------- one monitor (width 1, origin on the floor, screen facing +z) ----------
+     two clear acrylic plates sandwich the display and a light rail; a perforated band closes the sides;
+     chrome screws pin the corners. It stands on two chrome posts over a screwed acrylic plinth. */
+  const PT = 0.024, D = 0.074, CORE = D - 2 * PT;     // plate thickness, total depth, gap between plates
+  const M = 0.03, SW = 1 - 2 * M, SH = SW * 9 / 16, RAIL = 0.1;
+  const PLATE_H = M + SH + RAIL;
+  const PLINTH_H = 0.032, POST_H = 0.15, COLLAR_H = 0.02;
+  const BOX_Y0 = PLINTH_H + POST_H;                   // underside of the plates
+  const BOX_Y1 = BOX_Y0 + PLATE_H;
+  const SCREEN_Y = BOX_Y1 - M - SH / 2;
+  const SCREEN_Z = CORE / 2 - 0.002;
 
-  const rbox = (w, h, d, r) => new RoundedBoxGeometry(w, h, d, 2, r);
+  const rbox = (w, h, d, r, seg = 4) => new RoundedBoxGeometry(w, h, d, seg, r);
   const geo = {
-    base: rbox(1, BASE_H, D, 0.006),
-    vbar: rbox(FW, BOX_H - BASE_H, FW, 0.004),
-    hbar: rbox(1, FW, FW, 0.004),
-    dbar: rbox(FW, FW, D, 0.004),
-    paneFB: new THREE.BoxGeometry(1 - 2 * FW, BOX_H - BASE_H - FW, 0.004),
-    paneSide: new THREE.BoxGeometry(0.004, BOX_H - BASE_H - FW, D - 2 * FW),
-    paneTop: new THREE.BoxGeometry(1 - 2 * FW, 0.004, D - 2 * FW),
-    panel: rbox(SW + 0.024, SH + 0.024, 0.014, 0.004),
+    plate: rbox(1, PLATE_H, PT, 0.012),
+    bandSide: new THREE.BoxGeometry(CORE, PLATE_H - 0.016, 0.006),
+    bandTop: new THREE.BoxGeometry(1 - 0.016, CORE, 0.006),
+    panel: rbox(SW + 0.012, SH + 0.012, 0.012, 0.003, 2),
     screen: new THREE.PlaneGeometry(SW, SH),
-    standoff: new THREE.CylinderGeometry(0.007, 0.007, 1, 16),
-    post: new THREE.CylinderGeometry(0.019, 0.019, POST_H, 32),
-    foot: new THREE.CylinderGeometry(0.016, 0.016, FEET, 32),
-    plinth: rbox(0.64, 0.014, 0.34, 0.005),
-    knob: new THREE.CylinderGeometry(0.017, 0.017, 0.022, 36),
-    knurl: new THREE.CylinderGeometry(0.0175, 0.0175, 0.012, 36, 1, true),
-    jack: new THREE.TorusGeometry(0.01, 0.0035, 12, 32),
-    hole: new THREE.CircleGeometry(0.0085, 24),
-    tglBase: new THREE.CylinderGeometry(0.009, 0.009, 0.01, 24),
-    tglLever: new THREE.CylinderGeometry(0.0028, 0.002, 0.03, 12),
-    led: new THREE.SphereGeometry(0.0065, 16, 12),
-    label: new THREE.PlaneGeometry(0.14, 0.035)
+    board: new THREE.PlaneGeometry(SW, RAIL - 0.026),
+    ctrlPlate: rbox(0.13, 0.052, 0.006, 0.006, 2),
+    knob: new THREE.CylinderGeometry(0.0135, 0.0135, 0.005, 32),
+    knobRing: new THREE.TorusGeometry(0.0072, 0.0018, 10, 28),
+    tgl: new THREE.CylinderGeometry(0.0028, 0.0034, 0.016, 16),
+    tglBase: new THREE.CylinderGeometry(0.0065, 0.0065, 0.002, 24),
+    led: new THREE.SphereGeometry(0.0062, 20, 12).scale(1, 1, 0.5),
+    grille: new THREE.PlaneGeometry(0.42, 0.034),
+    label: new THREE.PlaneGeometry(0.11, 0.028),
+    screwHead: new THREE.SphereGeometry(0.0105, 24, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.42, 1),   // domed
+    screwSlot: new THREE.BoxGeometry(0.014, 0.0012, 0.0025),
+    post: new THREE.CylinderGeometry(0.021, 0.021, POST_H, 40),
+    collar: new THREE.CylinderGeometry(0.032, 0.032, COLLAR_H, 40),
+    plinth: rbox(0.68, PLINTH_H, 0.3, 0.012),
+    sideGrille: new THREE.PlaneGeometry(CORE - 0.004, PLATE_H * 0.55)
   };
-  const knurlMat = new THREE.MeshStandardMaterial({ color: 0xe8e9eb, metalness: 1, roughness: 0.3, map: knurlTexture() });
 
-  const add = (parent, geometry, material, x, y, z, shadow = true) => {
+  const add = (parent, geometry, material, x, y, z) => {
     const m = new THREE.Mesh(geometry, material);
     m.position.set(x, y, z);
-    m.castShadow = shadow;
     parent.add(m);
     return m;
+  };
+  /* a chrome screw head facing +z (front) or +y (up) */
+  const screw = (parent, x, y, z, up = false) => {
+    const s = new THREE.Group();
+    const head = add(s, geo.screwHead, chrome, 0, 0, 0);
+    const sl = add(s, geo.screwSlot, slot, 0, 0, 0);
+    if (up) { sl.position.y = 0.0038; sl.rotation.y = 0.6; }
+    else { head.rotation.x = Math.PI / 2; sl.position.z = 0.0038; sl.rotation.z = 0.6; }
+    s.position.set(x, y, z);
+    parent.add(s);
   };
 
   const buildMonitor = (item, index) => {
     const g = new THREE.Group();
-    const zF = D / 2 - FW / 2, zB = -zF, xE = 0.5 - FW / 2;
-    const yBar = BOX_Y0 + BASE_H + (BOX_H - BASE_H) / 2;
+    const yMid = BOX_Y0 + PLATE_H / 2;
+    const zF = CORE / 2 + PT / 2, zB = -zF;
 
-    /* aluminium: solid base, four uprights, top rails front/back and two depth rails */
-    add(g, geo.base, alu, 0, BOX_Y0 + BASE_H / 2, 0);
-    [[-xE, zF], [xE, zF], [-xE, zB], [xE, zB]].forEach(([x, z]) => add(g, geo.vbar, alu, x, yBar, z));
-    add(g, geo.hbar, alu, 0, BOX_Y1 - FW / 2, zF);
-    add(g, geo.hbar, alu, 0, BOX_Y1 - FW / 2, zB);
-    add(g, geo.dbar, alu, -xE, BOX_Y1 - FW / 2, 0);
-    add(g, geo.dbar, alu, xE, BOX_Y1 - FW / 2, 0);
-
-    /* glass panes */
-    const paneY = BOX_Y0 + BASE_H + (BOX_H - BASE_H - FW) / 2;
-    add(g, geo.paneFB, frontGlass, 0, paneY, zF, false).renderOrder = 2;
-    add(g, geo.paneFB, glass, 0, paneY, zB, false).renderOrder = 2;
-    add(g, geo.paneSide, glass, -xE, paneY, 0, false).renderOrder = 2;
-    add(g, geo.paneSide, glass, xE, paneY, 0, false).renderOrder = 2;
-    add(g, geo.paneTop, glass, 0, BOX_Y1 - FW / 2, 0, false).renderOrder = 2;
-
-    /* the display floats inside on four chrome standoffs to the back pane */
-    add(g, geo.panel, panel, 0, SCREEN_Y, SCREEN_Z - 0.008);
-    const screenMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
-    const scr = add(g, geo.screen, screenMat, 0, SCREEN_Y, SCREEN_Z, false);
-    const soLen = (SCREEN_Z - 0.015) - (zB + 0.002);
-    [[-0.4, 0.2], [0.4, 0.2], [-0.4, -0.2], [0.4, -0.2]].forEach(([x, y]) => {
-      const so = add(g, geo.standoff, chrome, x, SCREEN_Y + y, (SCREEN_Z - 0.015 + zB + 0.002) / 2);
-      so.rotation.x = Math.PI / 2;
-      so.scale.y = soLen;
+    /* the acrylic sandwich */
+    add(g, geo.plate, acrylic, 0, yMid, zF);
+    add(g, geo.plate, acrylic, 0, yMid, zB);
+    /* perforated band between the plates: grilles on the sides, plain satin top and bottom */
+    [-1, 1].forEach(sx => {
+      const b = add(g, geo.bandSide, satin, sx * (0.5 - 0.011), yMid, 0);
+      b.rotation.y = Math.PI / 2;
+      const gr = add(g, geo.sideGrille, sideGrilleMat, sx * (0.5 - 0.0075), yMid + 0.02, 0);
+      gr.rotation.y = sx * Math.PI / 2;
     });
-    /* a cable from the back of the display down into the base */
-    const cable = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0.28, SCREEN_Y - SH / 2 + 0.05, SCREEN_Z - 0.02),
-      new THREE.Vector3(0.31, SCREEN_Y - SH / 2 - 0.0, -0.03),
-      new THREE.Vector3(0.36, BOX_Y0 + BASE_H + 0.02, -0.05),
-      new THREE.Vector3(0.37, BOX_Y0 + BASE_H - 0.01, -0.05)
-    ]);
-    add(g, new THREE.TubeGeometry(cable, 32, 0.0045, 10), black, 0, 0, 0);
+    [BOX_Y1 - 0.011, BOX_Y0 + 0.011].forEach(y => {
+      const b = add(g, geo.bandTop, satin, 0, y, 0);
+      b.rotation.x = Math.PI / 2;
+    });
 
-    /* controls on the face of the base: jack, knurled knob, toggle, status LED, and the channel mark */
-    const yC = BOX_Y0 + BASE_H / 2, zC = D / 2;
-    const jack = add(g, geo.jack, chrome, 0.2, yC, zC + 0.002);
-    add(g, geo.hole, black, 0.2, yC, zC + 0.0015, false);
-    const knob = add(g, geo.knob, chrome, 0.265, yC, zC + 0.011); knob.rotation.x = Math.PI / 2;
-    const knurl = add(g, geo.knurl, knurlMat, 0.265, yC, zC + 0.009); knurl.rotation.x = Math.PI / 2;
-    const tb = add(g, geo.tglBase, chrome, 0.33, yC, zC + 0.005); tb.rotation.x = Math.PI / 2;
-    const tl = add(g, geo.tglLever, chrome, 0.33, yC + 0.006, zC + 0.02); tl.rotation.x = Math.PI / 2 - 0.5;
-    const led = add(g, geo.led, ledOff, 0.39, yC, zC + 0.001, false);
-    const lbl = add(g, geo.label, new THREE.MeshBasicMaterial({ map: labelTexture('CH ' + pad(index + 1)), transparent: true, toneMapped: false }), -0.33, yC, zC + 0.0012, false);
-    lbl.renderOrder = 1;
-    void jack;
+    /* display and rail between the plates */
+    add(g, geo.panel, panel, 0, SCREEN_Y, SCREEN_Z - 0.007);
+    const screenMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+    const scr = add(g, geo.screen, screenMat, 0, SCREEN_Y, SCREEN_Z);
+    const yRail = BOX_Y0 + RAIL / 2 - 0.004;
+    add(g, geo.board, boardMat, 0, yRail, SCREEN_Z - 0.006);
+    add(g, geo.ctrlPlate, plateMat, -0.36, yRail, SCREEN_Z - 0.002);
+    [-0.395, -0.36].forEach(x => {
+      const k = add(g, geo.knob, black, x, yRail, SCREEN_Z - 0.0015); k.rotation.x = Math.PI / 2;
+      add(g, geo.knobRing, plateMat, x, yRail, SCREEN_Z + 0.0012);
+    });
+    /* everything in here stays within the 2 mm in front of the screen, behind the front plate */
+    const led = add(g, geo.led, ledOff, -0.333, yRail + 0.008, SCREEN_Z - 0.0012);
+    const tb = add(g, geo.tglBase, chrome, -0.313, yRail - 0.006, SCREEN_Z); tb.rotation.x = Math.PI / 2;
+    add(g, geo.tgl, chrome, -0.313, yRail + 0.002, SCREEN_Z - 0.0016);
+    add(g, geo.grille, grilleMat, 0.02, yRail, SCREEN_Z - 0.003);
+    /* opaque, lit like the board, so it shows through the acrylic (transparent meshes would not) */
+    add(g, geo.label, new THREE.MeshStandardMaterial({ map: labelTexture('CH ' + pad(index + 1)), metalness: 0.1, roughness: 0.5 }), 0.4, yRail, SCREEN_Z - 0.003);
 
-    /* stand: two black posts on a clear glass plinth, with four posts through its corners */
-    [-0.17, 0.17].forEach(x => add(g, geo.post, black, x, PLINTH_Y + 0.007 + POST_H / 2, 0));
-    add(g, geo.plinth, acrylic, 0, PLINTH_Y, 0, false).renderOrder = 2;
-    [[-0.28, 0.135], [0.28, 0.135], [-0.28, -0.135], [0.28, -0.135]].forEach(([x, z]) => add(g, geo.foot, black, x, FEET / 2, z));
+    /* chrome screws through the plates at the four corners */
+    [[-0.47, BOX_Y1 - 0.03], [0.47, BOX_Y1 - 0.03], [-0.47, BOX_Y0 + 0.03], [0.47, BOX_Y0 + 0.03]].forEach(([x, y]) => {
+      screw(g, x, y, zF + PT / 2);
+    });
+
+    /* stand: chrome posts with collars top and bottom, on a screwed acrylic plinth */
+    [-0.17, 0.17].forEach(x => {
+      add(g, geo.post, chrome, x, PLINTH_H + POST_H / 2, 0);
+      add(g, geo.collar, chrome, x, BOX_Y0 - COLLAR_H / 2, 0);
+      add(g, geo.collar, chrome, x, PLINTH_H + COLLAR_H / 2, 0);
+    });
+    add(g, geo.plinth, acrylicThick, 0, PLINTH_H / 2, 0);
+    [[-0.3, 0.115], [0.3, 0.115], [-0.3, -0.115], [0.3, -0.115]].forEach(([x, z]) => screw(g, x, PLINTH_H, z, true));
 
     g.userData = { index, screenMat, scr, led };
     g.traverse(o => { o.userData.monitor = index; });
@@ -269,6 +338,7 @@ function start() {
     const w = stage.clientWidth, h = stage.clientHeight;
     view.w = w; view.h = h;
     renderer.setSize(w, h, false);
+    if (reflect) floor.getRenderTarget().setSize(Math.round(w * DPR * 0.35), Math.round(h * DPR * 0.35));   // low-res reads as a soft reflection
     camera.aspect = w / h;
     const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     const tanH = tanV * camera.aspect;
@@ -276,7 +346,7 @@ function start() {
     const yEye = SCREEN_Y * FRONT_SCALE;
     const portrait = w / h < 0.8;
     const SHIFT = portrait ? 0.12 : 0.28;      // front screen centre: 44% (phones) or 36% from the top
-    const share = w < 700 ? 0.84 : Math.min(0.46, 720 / w);
+    const share = w < 700 ? 0.74 : Math.min(0.46, 720 / w);   // phones: neighbours peek in at the edges
     const dW = frontW / (2 * share * tanH);
     const dBottom = (yEye - 0.07 * FRONT_SCALE) / (tanV * (SHIFT + 0.5));   // plinth above the caption
     const dTop = (frontH - yEye) / (tanV * (0.92 - SHIFT));
@@ -306,6 +376,8 @@ function start() {
       const t = Math.max(0, 1 - d);
       const s = 1 + (FRONT_SCALE - 1) * t * t * (3 - 2 * t);
       m.scale.setScalar(s);
+      const a = (i - p) * STEP;
+      monUniform[i].set(Math.sin(a) * R, Math.cos(a) * R, a, m.visible ? s : 0.0001);
     });
     const k = front();
     if (k !== shownK) {
@@ -315,7 +387,19 @@ function start() {
     }
     if (liveFor !== -1 && liveFor !== k) stopLive();
   };
-  const renderNow = () => { rafR = 0; layout(); renderer.render(scene, camera); };
+  const renderNow = () => {
+    rafR = 0;
+    layout();
+    if (reflect) {
+      /* the reflection skips the acrylic (an extra transmission pass for a faint, blurred image) */
+      scene.updateMatrixWorld();
+      camera.updateMatrixWorld();
+      acrylic.visible = acrylicThick.visible = false;
+      reflect(renderer, scene, camera);
+      acrylic.visible = acrylicThick.visible = true;
+    }
+    renderer.render(scene, camera);
+  };
   function requestRender() { if (!rafR) rafR = requestAnimationFrame(renderNow); }
 
   /* ---------- live player over the front screen ---------- */
@@ -546,6 +630,8 @@ function start() {
   }));
   items.forEach((it, i) => it.el.addEventListener('focus', () => { if (i !== front()) goTo(i); }));
 
+  syncBackground();
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(syncBackground, 50));
   setHdr();
   frame();
   renderNow();
@@ -554,38 +640,65 @@ function start() {
   site.cover3dReady = true;
   settle();
 
-  /* ---------- procedural textures ---------- */
-  function grainTexture() {
-    const s = 256, c = document.createElement('canvas');
-    c.width = c.height = s;
-    const ctx = c.getContext('2d');
-    const img = ctx.createImageData(s, s);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = 150 + Math.random() * 105;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-      img.data[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-    const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(3, 3);
-    return t;
+  /* ---------- lighting environment: a white studio with softboxes and two dark flags ----------
+     the flags give chrome its dark streaks; everything else reflects as bright white */
+  function studioEnvironment() {
+    const env = new THREE.Scene();
+    const basic = (v, side = THREE.DoubleSide) => new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side });
+    const room = new THREE.Mesh(new THREE.BoxGeometry(24, 12, 24), basic(0.85, THREE.BackSide));
+    room.position.y = 4;
+    env.add(room);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), basic(0.5));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -1.9;
+    env.add(floor);
+    const panel = (w, h, v, x, y, z) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), basic(v));
+      m.position.set(x, y, z);
+      m.lookAt(0, y, 0);
+      env.add(m);
+    };
+    const softbox = new THREE.Mesh(new THREE.PlaneGeometry(8, 5), basic(8));   // overhead key
+    softbox.position.set(-3, 9.5, 2);
+    softbox.rotation.x = Math.PI / 2;
+    env.add(softbox);
+    panel(3, 8, 4, 9, 2, 3);          // strip lights left and right
+    panel(3, 8, 4, -9, 2, -2);
+    panel(5, 3, 2, 0, 3, 10);         // front fill behind the camera
+    panel(3.5, 9, 0.03, -5.5, 2.4, 8.5);   // negative fill flags, floor to ceiling
+    panel(3.5, 9, 0.03, 7, 2.4, 7.5);
+    panel(3, 9, 0.05, 10, 2.4, -6);
+    panel(3, 9, 0.05, -10, 2.4, 5);
+    return env;
   }
-  function knurlTexture() {
+
+  /* ---------- procedural textures ---------- */
+  function grilleTexture(vertical) {
     const c = document.createElement('canvas');
-    c.width = 128; c.height = 8;
+    const w = vertical ? 64 : 512, h = vertical ? 512 : 48;
+    c.width = w; c.height = h;
     const ctx = c.getContext('2d');
-    for (let x = 0; x < 128; x += 4) { ctx.fillStyle = '#f2f3f5'; ctx.fillRect(x, 0, 2, 8); ctx.fillStyle = '#9a9ea5'; ctx.fillRect(x + 2, 0, 2, 8); }
+    ctx.fillStyle = '#d9dbdf';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#5d6168';
+    const step = 6;
+    for (let y = step / 2; y < h; y += step) {
+      for (let x = (y / step) % 2 ? step : step / 2; x < w; x += step) {
+        ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+      }
+    }
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.wrapS = THREE.RepeatWrapping;
+    t.anisotropy = 4;
     return t;
   }
   function labelTexture(text) {
     const c = document.createElement('canvas');
     c.width = 256; c.height = 64;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(70,74,80,0.85)';
+    ctx.fillStyle = '#f1f2f4';   // the rail board's colour
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = '#4a4e55';
     ctx.font = '500 34px "IBM Plex Mono", ui-monospace, monospace';
     ctx.textBaseline = 'middle';
     ctx.fillText(text.split('').join(String.fromCharCode(8202)), 4, 34);
