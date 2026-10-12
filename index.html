@@ -279,6 +279,8 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .cover.is-loading .ring{visibility:hidden}
 .cover.is-3d .ring{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%);transform:none}
 .cover.is-3d .cover-caption{position:absolute;left:0;right:0;bottom:clamp(14px,4vh,40px)}
+.cover.is-3d .cover-caption{transition:opacity .8s ease}
+.cover.is-intro .cover-caption{opacity:0;pointer-events:none}
 .mon:focus-visible .mon-screen{outline:2px solid var(--chroma);outline-offset:4px}
 .cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
