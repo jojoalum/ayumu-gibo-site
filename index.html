@@ -35,10 +35,14 @@
   --bezel:#15171C;
   --bezel-edge:rgba(255,255,255,.07);
   --tally:#FF3B30;
-  --mon-hi:#3B3E46;
-  --mon-lo:#1D1F25;
-  --mon-edge:#25272D;
-  --foot-rim:#131418;
+  --alu-hi:#E4E6E9;
+  --alu-lo:#ADB1B7;
+  --glass:rgba(240,244,247,.32);
+  --glass-sheen:rgba(255,255,255,.55);
+  --glass-edge:rgba(140,148,158,.55);
+  --glass-rim:rgba(140,148,158,.28);
+  --plate:#F2F3F4;
+  --screw:#9DA1A8;
   --floor-shadow:rgba(10,12,18,.24);
   --scrim:rgba(7,8,11,.94);
   --display:"Big Shoulders Display","Zen Kaku Gothic New","Arial Narrow",sans-serif;
@@ -49,7 +53,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0C0E13;--fg:#E6E8EE;--muted:#8E94A6;--line:#262A35;--chroma:#2440FF;--on-chroma:#F3F5FF;--floor-shadow:rgba(0,0,0,.55);color-scheme:dark;
+    --bg:#0C0E13;--fg:#E6E8EE;--muted:#8E94A6;--line:#262A35;--chroma:#2440FF;--on-chroma:#F3F5FF;--floor-shadow:rgba(0,0,0,.55);--glass:rgba(200,210,220,.10);--glass-sheen:rgba(255,255,255,.14);--glass-edge:rgba(200,208,218,.35);--glass-rim:rgba(200,208,218,.18);color-scheme:dark;
   }
 }
 
@@ -151,7 +155,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .cover{
   --hdr:64px;
   --mw:min(50vw,680px,calc((100vh - var(--hdr) - 250px) / .86));
-  --t:calc(var(--mw) * .032);
+  --t:calc(var(--mw) * .07);
   --bz:clamp(4px,.6vw,8px);
   --r:calc(var(--mw) * 1.45);
   position:relative;margin-inline:calc(var(--gutter) * -1);
@@ -166,45 +170,110 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;
 }
 .stage.is-dragging{cursor:grabbing}
-.ring{position:relative;width:var(--mw);aspect-ratio:16/9;margin-bottom:calc(var(--mw) * .3);transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1))}
+/* Monitor: a brushed-aluminium frame boxed in clear glass. The screen floats inside with a glass margin;
+   the bottom rail holds an exposed control plate and cables. It stands on two black posts over a glass plate. */
+.ring{
+  --fw:max(3px,calc(var(--mw) * .018));   /* aluminium frame bar */
+  --gm:calc(var(--mw) * .017);            /* glass margin around the screen */
+  position:relative;width:var(--mw);aspect-ratio:100/65.8;margin-bottom:calc(var(--mw) * .27);
+  transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1));
+}
 .mon{position:absolute;inset:0;display:block;cursor:pointer;transform-style:preserve-3d;transform:rotateY(calc(var(--a,0) * 1deg)) translateZ(var(--r));-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
 .mon img{-webkit-user-drag:none}
 .mon-body,.mon-foot{position:absolute;transform-style:preserve-3d}
 .mon-body{inset:0;transform:translateZ(calc(var(--t) / -2))}
 .mon-body > *{position:absolute;display:block;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .mon-screen{
-  inset:0;background:var(--frame-bg);
-  border:var(--bz) solid var(--bezel);border-radius:5px;
+  inset:0;border:var(--fw) solid transparent;border-radius:3px;
+  background:
+    linear-gradient(115deg,var(--glass-sheen) 0 18%,transparent 18% 100%) padding-box,
+    linear-gradient(var(--glass),var(--glass)) padding-box,
+    linear-gradient(180deg,var(--alu-hi),var(--alu-lo)) border-box;
   transform:translateZ(calc(var(--t) / 2));
+}
+.scr{
+  position:absolute;left:var(--gm);right:var(--gm);top:var(--gm);aspect-ratio:16/9;
+  background:var(--frame-bg);border:max(2px,calc(var(--mw) * .005)) solid #0B0C0F;border-radius:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,.25);
 }
 .mon-screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .mon-screen img.contain{object-fit:contain}
 .mon-screen img.is-missing{visibility:hidden}
-.mon-back{inset:0;border-radius:5px;background:linear-gradient(160deg,var(--mon-hi),var(--mon-lo));transform:rotateY(180deg) translateZ(calc(var(--t) / 2))}
-.mon-side{top:0;height:100%;left:calc(50% - var(--t) / 2);width:var(--t);background:var(--mon-edge)}
+/* exposed control plate on the rail: screws, two knobs, a toggle and a status LED (red while live) */
+.mod{
+  position:absolute;left:calc(var(--gm) + var(--mw) * .02);bottom:calc(var(--mw) * .014);
+  width:calc(var(--mw) * .15);height:calc(var(--mw) * .052);border-radius:2px;
+  display:flex;align-items:center;gap:calc(var(--mw) * .012);padding-left:calc(var(--mw) * .016);
+  background:
+    radial-gradient(circle at 6% 18%,var(--screw) 0 calc(var(--mw) * .0035),transparent calc(var(--mw) * .0045)),
+    radial-gradient(circle at 94% 18%,var(--screw) 0 calc(var(--mw) * .0035),transparent calc(var(--mw) * .0045)),
+    radial-gradient(circle at 6% 82%,var(--screw) 0 calc(var(--mw) * .0035),transparent calc(var(--mw) * .0045)),
+    radial-gradient(circle at 94% 82%,var(--screw) 0 calc(var(--mw) * .0035),transparent calc(var(--mw) * .0045)),
+    var(--plate);
+  box-shadow:0 1px 2px rgba(0,0,0,.18);
+}
+.mod > *{display:block;flex:none;border-radius:50%}
+.knob{width:calc(var(--mw) * .02);height:calc(var(--mw) * .02);background:radial-gradient(circle,var(--alu-hi) 0 28%,#16171B 32%)}
+.tgl{width:calc(var(--mw) * .008);height:calc(var(--mw) * .02);border-radius:2px;background:linear-gradient(var(--alu-hi),var(--alu-lo))}
+.led{width:calc(var(--mw) * .008);height:calc(var(--mw) * .008);background:#9A9EA5}
+.mon.is-live .led{background:var(--tally);box-shadow:0 0 calc(var(--mw) * .01) var(--tally)}
+.cable{position:absolute;left:calc(var(--gm) + var(--mw) * .045);bottom:calc(var(--mw) * .062);width:calc(var(--mw) * .2);height:calc(var(--mw) * .024);overflow:visible}
+.cable path{fill:none;stroke:#2A2C31;stroke-width:1.2;vector-effect:non-scaling-stroke}
+.rail-ch{position:absolute;right:calc(var(--gm) + var(--mw) * .02);bottom:calc(var(--mw) * .03);font-family:var(--mono);font-size:max(5px,calc(var(--mw) * .015));letter-spacing:.12em;color:#7B8088;line-height:1}
+.mon-back{
+  inset:0;border:var(--fw) solid transparent;border-radius:3px;
+  background:
+    linear-gradient(#2B2E34,#2B2E34) center 42% / 88% 74% no-repeat padding-box,
+    linear-gradient(var(--glass),var(--glass)) padding-box,
+    linear-gradient(180deg,var(--alu-hi),var(--alu-lo)) border-box;
+  transform:rotateY(180deg) translateZ(calc(var(--t) / 2));
+}
+/* glass side and top panes with frame bars along their front and back edges; solid aluminium underneath */
+.mon-side{
+  top:0;height:100%;left:calc(50% - var(--t) / 2);width:var(--t);
+  border-block:var(--fw) solid var(--alu-lo);
+  background:linear-gradient(90deg,var(--alu-hi) 0 var(--fw),var(--glass) var(--fw) calc(100% - var(--fw)),var(--alu-lo) calc(100% - var(--fw)));
+}
 .mon-side.l{transform:rotateY(-90deg) translateZ(calc(var(--mw) / 2))}
 .mon-side.r{transform:rotateY(90deg) translateZ(calc(var(--mw) / 2))}
-.mon-cap{left:0;width:100%;top:calc(50% - var(--t) / 2);height:var(--t);background:var(--mon-edge)}
-.mon-cap.t{transform:rotateX(90deg) translateZ(calc(var(--mw) * 9 / 32))}
-.mon-cap.b{transform:rotateX(-90deg) translateZ(calc(var(--mw) * 9 / 32))}
-/* slim neck: drawn from the screen face itself so it adds no extra plane to the 3D sort;
-   it stops just above the foot's plane, since crossing that plane breaks the sort in Chromium */
+.mon-cap{left:0;width:100%;top:calc(50% - var(--t) / 2);height:var(--t)}
+.mon-cap.t{
+  border-inline:var(--fw) solid var(--alu-lo);
+  background:linear-gradient(180deg,var(--alu-lo) 0 var(--fw),var(--glass) var(--fw) calc(100% - var(--fw)),var(--alu-hi) calc(100% - var(--fw)));
+  transform:rotateX(90deg) translateZ(calc(var(--mw) * .329));
+}
+.mon-cap.b{background:var(--alu-lo);transform:rotateX(-90deg) translateZ(calc(var(--mw) * .329))}
+/* two black posts, drawn from the front face so they add no plane to the 3D sort;
+   they stop just above the plate's plane, since crossing it breaks the sort in Chromium */
 .mon-screen::after{
-  content:"";position:absolute;left:calc(50% - var(--mw) * .0275);top:calc(100% + var(--bz));
-  width:calc(var(--mw) * .055);height:calc(var(--mw) * .19);border-radius:0 0 2px 2px;
-  background:linear-gradient(90deg,var(--mon-lo),var(--mon-hi) 45%,var(--mon-lo));
+  content:"";position:absolute;left:calc(50% - var(--mw) * .15);top:calc(100% + var(--fw));
+  width:calc(var(--mw) * .3);height:calc(var(--mw) * .154);
+  background:
+    linear-gradient(90deg,#0D0E11,#41444B 45%,#0D0E11) left / calc(var(--mw) * .034) 100% no-repeat,
+    linear-gradient(90deg,#0D0E11,#41444B 45%,#0D0E11) right / calc(var(--mw) * .034) 100% no-repeat;
 }
-/* round foot lying flat, with a darker disc just below for its edge, and a soft floor shadow */
+/* clear glass plate lying flat, posts showing through at its corners, with a faint edge and a floor shadow */
 .mon-foot{
-  --fw:calc(var(--mw) * .34);--fd:calc(var(--mw) * .22);
-  left:calc(50% - var(--fw) / 2);width:var(--fw);height:var(--fd);
-  top:calc(80% + var(--mw) * .31 - var(--fd) / 2);
-  transform:translateZ(calc(var(--t) * -1 - var(--mw) * .01));
+  --pw:calc(var(--mw) * .5);--pd:calc(var(--mw) * .26);
+  left:calc(50% - var(--pw) / 2);width:var(--pw);height:var(--pd);
+  top:calc(100% + var(--mw) * .16 - var(--pd) / 2);
+  transform:translateZ(calc(var(--t) / -2));
 }
-.mon-foot > *{position:absolute;inset:0;border-radius:50%}
-.ft-top{background:radial-gradient(ellipse at 50% 35%,var(--mon-hi),var(--mon-lo) 75%);transform:rotateX(90deg)}
-.ft-rim{background:var(--foot-rim);transform:translateY(calc(var(--mw) * .012)) rotateX(90deg)}
-.ft-shadow{inset:-45% -60%;background:radial-gradient(ellipse at center,var(--floor-shadow),transparent 62%);transform:translateY(calc(var(--mw) * .014)) rotateX(90deg)}
+.mon-foot > *{position:absolute;inset:0;border-radius:6px}
+.ft-top{
+  border:1px solid var(--glass-edge);
+  background:
+    radial-gradient(circle at 7% 12%,#16171B 0 calc(var(--mw) * .011),transparent calc(var(--mw) * .012)),
+    radial-gradient(circle at 93% 12%,#16171B 0 calc(var(--mw) * .011),transparent calc(var(--mw) * .012)),
+    radial-gradient(circle at 7% 88%,#16171B 0 calc(var(--mw) * .011),transparent calc(var(--mw) * .012)),
+    radial-gradient(circle at 93% 88%,#16171B 0 calc(var(--mw) * .011),transparent calc(var(--mw) * .012)),
+    radial-gradient(ellipse 4% 9% at 23.4% 63%,#16171B 0 70%,transparent 75%),
+    radial-gradient(ellipse 4% 9% at 76.6% 63%,#16171B 0 70%,transparent 75%),
+    linear-gradient(135deg,var(--glass-sheen),var(--glass) 40%);
+  transform:rotateX(90deg);
+}
+.ft-rim{background:var(--glass-rim);transform:translateY(calc(var(--mw) * .008)) rotateX(90deg)}
+.ft-shadow{inset:-40% -45%;border-radius:50%;background:radial-gradient(ellipse at center,var(--floor-shadow),transparent 62%);transform:translateY(calc(var(--mw) * .012)) rotateX(90deg)}
 .mon:focus-visible .mon-screen{outline:2px solid var(--chroma);outline-offset:4px}
 .cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
@@ -845,8 +914,17 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 
     /* add the decorative 3D parts: back, edges, neck and foot */
     const part = (cls, parent) => { const s = document.createElement('span'); s.className = cls; s.setAttribute('aria-hidden', 'true'); parent.appendChild(s); return s; };
-    mons.forEach(m => {
+    mons.forEach((m, i) => {
       const body = m.querySelector('.mon-body');
+      const face = body.querySelector('.mon-screen');
+      const scr = document.createElement('span');
+      scr.className = 'scr';
+      scr.append(...face.childNodes);
+      face.appendChild(scr);
+      const mod = part('mod', face);
+      ['knob', 'knob', 'tgl', 'led'].forEach(c => part(c, mod));
+      face.insertAdjacentHTML('beforeend', '<svg class="cable" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M6 20 C 6 9, 30 13, 38 0"/><path d="M12 20 C 13 11, 44 15, 50 0"/></svg>');
+      part('rail-ch', face).textContent = 'CH ' + pad(i + 1);
       ['mon-back', 'mon-side l', 'mon-side r', 'mon-cap t', 'mon-cap b'].forEach(c => part(c, body));
       const foot = part('mon-foot', m);
       ['ft-shadow', 'ft-rim', 'ft-top'].forEach(c => part(c, foot));
@@ -875,7 +953,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       : loadScript('https://player.vimeo.com/api/player.js').then(() => window.Vimeo).catch(err => { vimeoApi = null; throw err; }));
 
     const place = k => {
-      const s = mons[k].querySelector('.mon-screen');
+      const s = mons[k].querySelector('.scr');
       const sr = stage.getBoundingClientRect();
       const r = s.getBoundingClientRect();
       live.style.left = (r.left - sr.left + s.clientLeft) + 'px';
@@ -883,7 +961,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       live.style.width = s.clientWidth + 'px';
       live.style.height = s.clientHeight + 'px';
     };
-    const hideLive = () => { live.classList.remove('is-shown'); caption.classList.remove('is-live'); };
+    const hideLive = () => { live.classList.remove('is-shown'); caption.classList.remove('is-live'); mons.forEach(m => m.classList.remove('is-live')); };
     const stopLive = () => {
       hideLive();
       if (liveKill) { try { liveKill(); } catch (err) { /* already gone */ } }
@@ -897,6 +975,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       place(liveFor);
       live.classList.add('is-shown');
       caption.classList.add('is-live');
+      mons[liveFor].classList.add('is-live');
     };
     const onPlaying = k => { if (liveFor === k) { livePlaying = true; showIfReady(); } };
 
