@@ -285,6 +285,14 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
 .cover-live iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* seek bar along the bottom of the live screen */
+.cover-seek{position:absolute;left:0;right:0;bottom:0;z-index:1;height:26px;display:flex;align-items:flex-end;padding:0 10px 9px;pointer-events:auto;cursor:pointer;touch-action:none;outline:none}
+.cover-live:not(.is-shown) .cover-seek{pointer-events:none}
+.cover-seek::before{content:"";position:absolute;inset:-14px 0 0;background:linear-gradient(to top,rgba(0,0,0,.32),transparent);pointer-events:none}
+.cs-track{position:relative;display:block;width:100%;height:3px;border-radius:3px;background:rgba(255,255,255,.3);overflow:hidden;transition:height .15s}
+.cs-fill{position:absolute;inset:0;background:#fff;transform-origin:left center;transform:scaleX(0)}
+.cover-seek:hover .cs-track,.cover-seek.is-seeking .cs-track,.cover-seek:focus-visible .cs-track{height:5px}
+.cover-seek:focus-visible .cs-track{box-shadow:0 0 0 2px var(--chroma)}
 .cover-caption{position:relative;z-index:3;display:grid;justify-items:center;gap:6px;padding-inline:var(--gutter);text-align:center;cursor:auto}
 .cc-row{display:flex;align-items:center;gap:14px}
 .cc-count{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums;min-width:11ch;justify-content:center}

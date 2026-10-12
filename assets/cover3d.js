@@ -28,7 +28,7 @@ function start() {
   const ccTitle = document.getElementById('cc-title');
   const ccHint = document.getElementById('cc-hint');
   const header = document.querySelector('.site-header');
-  const { reduce, canHover, player, openPlayer } = site;
+  const { reduce, canHover, player } = site;
 
   /* data comes from the fallback markup */
   const items = [...cover.querySelectorAll('.mon')].map(m => {
@@ -407,12 +407,20 @@ function start() {
     const frontW = FRONT_SCALE * 1.0, frontH = FRONT_SCALE * BOX_Y1;
     const yEye = SCREEN_Y * FRONT_SCALE;
     const portrait = w / h < 0.8;
-    const SHIFT = portrait ? 0.12 : 0.28;      // front screen centre: 44% (phones) or 36% from the top
     const share = w < 700 ? 0.74 : Math.min(0.46, 720 / w);   // phones: neighbours peek in at the edges
     const dW = frontW / (2 * share * tanH);
-    const dBottom = (yEye - 0.07 * FRONT_SCALE) / (tanV * (SHIFT + 0.5));   // plinth above the caption
-    const dTop = (frontH - yEye) / (tanV * (0.92 - SHIFT));
-    const d = Math.max(dW, dBottom, dTop);
+    let SHIFT, d;
+    if (portrait) {
+      /* phones: the whole front monitor, stand included, centred in the space above the caption */
+      const capTop = Math.min(h, Math.max(h * 0.5, caption.offsetTop || h * 0.8));
+      d = Math.max(dW, frontH / (tanV * (2 * capTop / h) * 0.9));
+      SHIFT = (1 - capTop / h) - (frontH / 2 - yEye) / (d * tanV);
+    } else {
+      SHIFT = 0.28;                            // front screen centre 36% from the top
+      const dBottom = (yEye - 0.07 * FRONT_SCALE) / (tanV * (SHIFT + 0.5));   // plinth above the caption
+      const dTop = (frontH - yEye) / (tanV * (0.92 - SHIFT));
+      d = Math.max(dW, dBottom, dTop);
+    }
     camera.position.set(0, yEye, R + d);
     floorU.uCam.value.set(0, R + d);
     floorU.uFade.value.set(d * 0.85, d * 0.85 + 30);   // floor is the page colour up to the front stand, then darkens toward the wall
@@ -454,6 +462,7 @@ function start() {
   }
   let anim = 0, snapT = 0, drag = null, suppressClick = false, rafR = 0;
   let liveFor = -1, livePlaying = false, liveKill = null, ytApi = null, vimeoApi = null;
+  let liveCtl = null, liveDur = 0, seeking = false, soundOn = false, pendingSound = false;
   const front = () => mod(Math.round(p), N);
 
   const layout = () => {
@@ -522,7 +531,83 @@ function start() {
     hideLive();
     if (liveKill) { try { liveKill(); } catch (err) { /* already gone */ } }
     liveKill = null; liveFor = -1; livePlaying = false;
+    liveCtl = null; liveDur = 0; seeking = false; soundOn = false; pendingSound = false;
+    drawSeek(0);
+    caption.classList.remove('is-sound');
     live.replaceChildren();
+  };
+
+  /* the video stays on the monitor: a seek bar along the bottom of the screen, and a tap on the screen
+     turns the sound on or off */
+  const seek = document.createElement('div');
+  seek.className = 'cover-seek';
+  seek.tabIndex = 0;
+  seek.setAttribute('role', 'slider');
+  seek.setAttribute('aria-label', 'Seek');
+  seek.setAttribute('aria-valuemin', '0');
+  seek.setAttribute('aria-valuemax', '100');
+  seek.innerHTML = '<span class="cs-track"><span class="cs-fill"></span></span>';
+  const seekFill = seek.querySelector('.cs-fill');
+  function drawSeek(f) {
+    f = Math.min(1, Math.max(0, f || 0));
+    seekFill.style.transform = 'scaleX(' + f + ')';
+    seek.setAttribute('aria-valuenow', String(Math.round(f * 100)));
+  }
+  const setLiveContent = el => live.replaceChildren(el, seek);
+  setInterval(() => {
+    if (!liveCtl || seeking || !live.classList.contains('is-shown')) return;
+    try {
+      if (!liveDur) Promise.resolve(liveCtl.duration()).then(v => { liveDur = v || 0; }).catch(() => {});
+      Promise.resolve(liveCtl.time()).then(t => { if (!seeking && liveDur) drawSeek(t / liveDur); }).catch(() => {});
+    } catch (err) { /* player not ready */ }
+  }, 250);
+  const seekAt = x => { const r = seek.getBoundingClientRect(); return (x - r.left) / Math.max(1, r.width); };
+  const seekTo = f => { if (liveCtl && liveDur) { f = Math.min(1, Math.max(0, f)); drawSeek(f); liveCtl.seek(f * liveDur); } };
+  seek.addEventListener('pointerdown', e => {
+    e.stopPropagation();
+    if (!liveCtl || !liveDur) return;
+    e.preventDefault();
+    seeking = true;
+    seek.classList.add('is-seeking');
+    try { seek.setPointerCapture(e.pointerId); } catch (err) { /* released */ }
+    drawSeek(seekAt(e.clientX));
+  });
+  seek.addEventListener('pointermove', e => { if (seeking) drawSeek(seekAt(e.clientX)); });
+  seek.addEventListener('pointerup', e => {
+    if (!seeking) return;
+    seeking = false;
+    seek.classList.remove('is-seeking');
+    seekTo(seekAt(e.clientX));
+  });
+  seek.addEventListener('pointercancel', () => { seeking = false; seek.classList.remove('is-seeking'); });
+  seek.addEventListener('click', e => e.stopPropagation());
+  seek.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!liveCtl || !liveDur) return;
+    const f = parseFloat(seek.getAttribute('aria-valuenow') || '0') / 100;
+    seekTo(f + (e.key === 'ArrowRight' ? 5 : -5) / liveDur);
+  });
+  const setSound = on => {
+    if (!liveCtl) return;
+    soundOn = on;
+    try { liveCtl.mute(!on); } catch (err) { soundOn = false; }
+    caption.classList.toggle('is-sound', on);
+    setHint();
+    /* some phones refuse unmuted playback and pause it: go back to muted and keep playing */
+    if (on) setTimeout(() => {
+      if (!liveCtl || !soundOn) return;
+      Promise.resolve(liveCtl.paused()).then(paused => {
+        if (paused && liveCtl && soundOn) { soundOn = false; liveCtl.mute(true); liveCtl.play(); caption.classList.remove('is-sound'); setHint(); }
+      }).catch(() => {});
+    }, 700);
+  };
+  /* a click or tap on the front screen */
+  const pressFront = k => {
+    if (liveFor === k && liveCtl && livePlaying) { setSound(!soundOn); return; }
+    pendingSound = true;
+    startLive(k, true);
   };
   const showIfReady = () => {
     if (!settled || !inView || liveFor !== front() || !livePlaying || !player.hidden) return;
@@ -531,7 +616,12 @@ function start() {
     caption.classList.add('is-live');
     setLed(liveFor, true);
   };
-  const onPlaying = k => { if (liveFor === k) { livePlaying = true; showIfReady(); } };
+  const onPlaying = k => {
+    if (liveFor !== k) return;
+    livePlaying = true;
+    showIfReady();
+    if (pendingSound) { pendingSound = false; setSound(true); }
+  };
   const loadScript = (src, ready) => new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = src; s.async = true;
@@ -550,8 +640,8 @@ function start() {
     ? Promise.resolve(window.Vimeo)
     : loadScript('https://player.vimeo.com/api/player.js').then(() => window.Vimeo).catch(err => { vimeoApi = null; throw err; }));
 
-  const startLive = k => {
-    if (reduce) return;
+  const startLive = (k, asked = false) => {
+    if (reduce && !asked) return;   // with reduced motion, videos play only when asked
     if (liveFor === k) { showIfReady(); return; }
     stopLive();
     liveFor = k;
@@ -562,11 +652,17 @@ function start() {
       f.src = 'https://player.vimeo.com/video/' + it.id + '?autoplay=1&muted=1&loop=1&autopause=0&controls=0&title=0&byline=0&portrait=0&dnt=1&playsinline=1';
       f.allow = 'autoplay; fullscreen; picture-in-picture';
       f.title = it.title;
-      live.replaceChildren(f);
+      setLiveContent(f);
       loadVimeo().then(Vimeo => {
         if (liveFor !== k) return;
         const vp = new Vimeo.Player(f);
         liveKill = () => vp.destroy();
+        liveCtl = {
+          time: () => vp.getCurrentTime(), duration: () => vp.getDuration(),
+          seek: t => { vp.setCurrentTime(t).catch(() => {}); },
+          mute: m => { vp.setVolume(m ? 0 : 1).catch(() => {}); if (vp.setMuted) vp.setMuted(m).catch(() => {}); },
+          paused: () => vp.getPaused(), play: () => { vp.play().catch(() => {}); }
+        };
         vp.on('playing', () => onPlaying(k));
         vp.setVolume(0).catch(() => {});
         vp.play().catch(() => {});
@@ -574,14 +670,25 @@ function start() {
       return;
     }
     const host = document.createElement('div');
-    live.replaceChildren(host);
+    setLiveContent(host);
     loadYT().then(YT => {
       if (liveFor !== k) return;
       const yp = new YT.Player(host, {
         videoId: it.id, width: '100%', height: '100%', host: 'https://www.youtube-nocookie.com',
         playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: it.id, playsinline: 1, rel: 0, iv_load_policy: 3, disablekb: 1, fs: 0, modestbranding: 1 },
         events: {
-          onReady: e => { e.target.mute(); e.target.playVideo(); },
+          onReady: e => {
+            const yp = e.target;
+            yp.mute();
+            yp.playVideo();
+            if (liveFor !== k) return;
+            liveCtl = {
+              time: () => yp.getCurrentTime(), duration: () => yp.getDuration(),
+              seek: t => yp.seekTo(t, true),
+              mute: m => { if (m) yp.mute(); else { yp.unMute(); yp.setVolume(100); } },
+              paused: () => yp.getPlayerState() === 2, play: () => yp.playVideo()
+            };
+          },
           onStateChange: e => { if (e.data === 1) onPlaying(k); },
           onError: () => { if (liveFor === k) stopLive(); }
         }
@@ -592,8 +699,10 @@ function start() {
 
   /* ---------- motion ---------- */
   const setHint = () => {
-    ccHint.textContent = settled && !reduce
-      ? (touch ? 'Swipe to switch · Tap the screen for sound' : 'Drag or scroll sideways · Click the screen for sound')
+    const act = soundOn ? (touch ? 'Tap the screen to mute' : 'Click the screen to mute')
+      : (touch ? 'Tap the screen for sound' : 'Click the screen for sound');
+    ccHint.textContent = settled
+      ? (touch ? 'Swipe to switch · ' : 'Drag or scroll sideways · ') + act
       : (touch ? 'Swipe sideways to switch' : 'Drag or scroll sideways to switch');
   };
   const unsettle = () => { if (settled) { settled = false; hideLive(); setHint(); } };
@@ -640,7 +749,7 @@ function start() {
   };
   stage.addEventListener('pointerdown', e => {
     skipIntro();
-    if (e.button !== 0 || e.target.closest('.cc-nav')) return;
+    if (e.button !== 0 || e.target.closest('.cc-nav, .cover-seek')) return;
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, p0: p, moved: false, vx: 0, lx: e.clientX, lt: performance.now() };
   });
   stage.addEventListener('pointermove', e => {
@@ -696,11 +805,7 @@ function start() {
     const i = pick(e.clientX, e.clientY);
     if (i < 0) return;
     if (i !== front() || anim) { goTo(i); return; }
-    const card = document.querySelector('.work[data-id="' + items[i].id + '"]');
-    if (!card) return;
-    stopLive();
-    openPlayer(card);
-    site.setLastFocus(items[i].el);
+    pressFront(i);
   });
   document.getElementById('cc-prev').addEventListener('click', () => go(-1));
   document.getElementById('cc-next').addEventListener('click', () => go(1));
@@ -729,18 +834,17 @@ function start() {
   items.forEach((it, i) => it.el.addEventListener('click', e => {
     e.preventDefault();
     if (i !== front()) { goTo(i); return; }
-    const card = document.querySelector('.work[data-id="' + it.id + '"]');
-    if (card) { stopLive(); openPlayer(card); site.setLastFocus(it.el); }
+    pressFront(i);
   }));
   items.forEach((it, i) => it.el.addEventListener('focus', () => { if (i !== front()) goTo(i); }));
 
   syncBackground();
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(syncBackground, 50));
+  cover.classList.add('is-3d');   // first, so frame() measures the caption where it will sit
+  if (intro.on) cover.classList.add('is-intro');
   setHdr();
   frame();
-  if (intro.on) cover.classList.add('is-intro');
   renderNow();
-  cover.classList.add('is-3d');
   cover.classList.remove('is-loading');
   site.cover3dReady = true;
   if (!intro.on) settle();
