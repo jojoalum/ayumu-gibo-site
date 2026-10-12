@@ -284,7 +284,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 .mon:focus-visible .mon-screen{outline:2px solid var(--chroma);outline-offset:4px}
 .cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
-.cover-live iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cover-live iframe{position:absolute;left:0;top:0;width:var(--fw,100%);height:var(--fh,100%);border:0;pointer-events:none;transform:scale(var(--fs,1));transform-origin:0 0}
 /* seek bar along the bottom of the live screen */
 .cover-seek{position:absolute;left:0;right:0;bottom:0;z-index:1;height:26px;display:flex;align-items:flex-end;padding:0 10px 9px;pointer-events:auto;cursor:pointer;touch-action:none;outline:none}
 .cover-live:not(.is-shown) .cover-seek{pointer-events:none}

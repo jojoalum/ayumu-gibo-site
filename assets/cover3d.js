@@ -520,10 +520,17 @@ function start() {
     const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
     const l = Math.min(...xs), t = Math.min(...ys);
     const bleed = 1.5;   // cover the screen edge fully; the overlap lands on the black bezel
+    const W = Math.max(...xs) - l + bleed * 2, H = Math.max(...ys) - t + bleed * 2;
     live.style.left = (l - bleed) + 'px';
     live.style.top = (t - bleed) + 'px';
-    live.style.width = (Math.max(...xs) - l + bleed * 2) + 'px';
-    live.style.height = (Math.max(...ys) - t + bleed * 2) + 'px';
+    live.style.width = W + 'px';
+    live.style.height = H + 'px';
+    /* the player runs at least 960 px wide and is scaled down to the screen: its own overlays shrink
+       to almost nothing, and it streams a sharper picture */
+    const fs = Math.min(1, W / 960);
+    live.style.setProperty('--fs', String(fs));
+    live.style.setProperty('--fw', (W / fs) + 'px');
+    live.style.setProperty('--fh', (H / fs) + 'px');
   };
   const setLed = (k, on) => { if (k >= 0) { monitors[k].userData.led.material = on ? ledOn : ledOff; requestRender(); } };
   const hideLive = () => { live.classList.remove('is-shown'); caption.classList.remove('is-live'); monitors.forEach((m, i) => setLed(i, false)); };
@@ -671,11 +678,13 @@ function start() {
     }
     const host = document.createElement('div');
     setLiveContent(host);
+    let revealT = 0;
     loadYT().then(YT => {
       if (liveFor !== k) return;
+      /* no playlist/loop parameters (they add skip buttons); it loops by seeking back at the end */
       const yp = new YT.Player(host, {
         videoId: it.id, width: '100%', height: '100%', host: 'https://www.youtube-nocookie.com',
-        playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: it.id, playsinline: 1, rel: 0, iv_load_policy: 3, disablekb: 1, fs: 0, modestbranding: 1 },
+        playerVars: { autoplay: 1, mute: 1, controls: 0, playsinline: 1, rel: 0, iv_load_policy: 3, disablekb: 1, fs: 0, cc_load_policy: 0 },
         events: {
           onReady: e => {
             const yp = e.target;
@@ -689,11 +698,16 @@ function start() {
               paused: () => yp.getPlayerState() === 2, play: () => yp.playVideo()
             };
           },
-          onStateChange: e => { if (e.data === 1) onPlaying(k); },
+          onStateChange: e => {
+            /* YouTube lays its title and buttons over the first seconds of playback: keep the
+               screen on the still until they have faded */
+            if (e.data === 1 && !revealT) revealT = setTimeout(() => onPlaying(k), 3200);
+            else if (e.data === 0) { e.target.seekTo(0, true); e.target.playVideo(); }
+          },
           onError: () => { if (liveFor === k) stopLive(); }
         }
       });
-      liveKill = () => yp.destroy();
+      liveKill = () => { clearTimeout(revealT); yp.destroy(); };
     }).catch(() => {});
   };
 
