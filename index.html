@@ -274,6 +274,11 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 }
 .ft-rim{background:var(--glass-rim);transform:translateY(calc(var(--mw) * .008)) rotateX(90deg)}
 .ft-shadow{inset:-40% -45%;border-radius:50%;background:radial-gradient(ellipse at center,var(--floor-shadow),transparent 62%);transform:translateY(calc(var(--mw) * .012)) rotateX(90deg)}
+/* WebGL cover: the canvas fills the stage; the CSS ring stays in the page only as accessible links */
+.cover-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cover.is-loading .ring{visibility:hidden}
+.cover.is-3d .ring{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%);transform:none}
+.cover.is-3d .cover-caption{position:absolute;left:0;right:0;bottom:clamp(14px,4vh,40px)}
 .mon:focus-visible .mon-screen{outline:2px solid var(--chroma);outline-offset:4px}
 .cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
@@ -375,7 +380,7 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 </header>
 
 <main id="top">
-  <section class="cover" id="cover" aria-label="Featured videos">
+  <section class="cover is-loading" id="cover" aria-label="Featured videos">
     <div class="stage" id="stage">
       <div class="ring">
         <a class="mon" href="#works" draggable="false" data-provider="vimeo" data-id="1234326957" data-title="LEX&nbsp;- intro PV" aria-label="LEX - intro PV">
@@ -890,11 +895,25 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
 
-  /* Cover: a looping ring of monitors turned by sideways input — swipe or drag, a sideways trackpad
-     scroll, the arrow buttons or arrow keys. Vertical scrolling is left to the page. When the ring
-     rests, the front screen plays its video muted; the player sits flat over that screen. */
+  /* Shared hooks for the 3D cover (assets/cover3d.js), which loads as a module after this script. */
   const cover = document.getElementById('cover');
-  if (cover) {
+  let cssCoverStarted = false;
+  window.__site = {
+    reduce, canHover, player, openPlayer,
+    setLastFocus: el => { lastFocus = el; },
+    setOnPlayerClose: fn => { onPlayerClose = fn; },
+    cover3dReady: false,
+    initCssCover: () => { if (!cssCoverStarted && cover) { cssCoverStarted = true; cover.classList.remove('is-loading'); initCssCover(); } }
+  };
+  /* Fallback cover in CSS 3D: used when WebGL is unavailable or the 3D module fails or stalls. */
+  const hasWebGL = (() => { try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (err) { return false; } })();
+  if (cover && !hasWebGL) window.__site.initCssCover();
+  else if (cover) setTimeout(() => { if (!window.__site.cover3dReady) window.__site.initCssCover(); }, 8000);
+
+  /* Cover (CSS fallback): a looping ring of monitors turned by sideways input — swipe or drag, a sideways
+     trackpad scroll, the arrow buttons or arrow keys. Vertical scrolling is left to the page. When the ring
+     rests, the front screen plays its video muted; the player sits flat over that screen. */
+  function initCssCover() {
     const stage = document.getElementById('stage');
     const mons = [...cover.querySelectorAll('.mon')];
     const live = document.getElementById('cover-live');
@@ -1167,5 +1186,6 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   }
 })();
 </script>
+<script type="module" src="assets/cover3d.js"></script>
 </body>
 </html>

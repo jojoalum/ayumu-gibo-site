@@ -1,0 +1,4 @@
+# Proxy video thumbnails through this site so the 3D cover can use them as WebGL textures
+# (cross-origin images without CORS headers cannot be uploaded to the GPU).
+/thumb/yt/*      https://i.ytimg.com/vi/:splat       200
+/thumb/vimeo/*   https://i.vimeocdn.com/video/:splat  200
