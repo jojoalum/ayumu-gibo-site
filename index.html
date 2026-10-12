@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://i.vimeocdn.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: a plain name header; a cover where eight monitors on a ring turn with scroll and the front one plays an MV; then the works — a quiet grey sheet of thumbnails in rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1); titles appear over a thumbnail on hover or first tap; then About and Contact. Works play in an overlay player. */
+/* Layout: a plain name header; a cover where nine monitors on a looping ring turn with sideways input and the front one plays a video; then the works — a quiet grey sheet of thumbnails in rows grouped by artist, every frame in a row sharing one height whatever the format (16:9, 9:16, 1:1); titles appear over a thumbnail on hover or first tap; then About and Contact. Works play in an overlay player. */
 :root{
   --bg:#ECEDF1;
   --fg:#12141A;
@@ -35,6 +35,11 @@
   --bezel:#15171C;
   --bezel-edge:rgba(255,255,255,.07);
   --tally:#FF3B30;
+  --mon-hi:#3B3E46;
+  --mon-lo:#1D1F25;
+  --mon-edge:#25272D;
+  --foot-rim:#131418;
+  --floor-shadow:rgba(10,12,18,.24);
   --scrim:rgba(7,8,11,.94);
   --display:"Big Shoulders Display","Zen Kaku Gothic New","Arial Narrow",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
@@ -44,13 +49,13 @@
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#0C0E13;--fg:#E6E8EE;--muted:#8E94A6;--line:#262A35;--chroma:#2440FF;--on-chroma:#F3F5FF;color-scheme:dark;
+    --bg:#0C0E13;--fg:#E6E8EE;--muted:#8E94A6;--line:#262A35;--chroma:#2440FF;--on-chroma:#F3F5FF;--floor-shadow:rgba(0,0,0,.55);color-scheme:dark;
   }
 }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overscroll-behavior-x:none}
 html.is-locked,html.is-locked body{overflow:hidden}
 body{
   margin:0;background:var(--bg);color:var(--fg);
@@ -141,37 +146,80 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 @container (max-width:200px){.w-title{font-size:16px}.meta{padding-inline:10px}}
 @container (max-width:140px){.f-play{display:none}}
 
-/* Cover: eight original monitors on a ring. Scrolling turns the ring; when it rests, the front screen plays its music video */
+/* Cover: nine original desktop monitors on a ring. Swipe, drag or scroll sideways to turn it (it loops);
+   when it rests, the front screen plays its video muted. Monitor bodies are CSS boxes with a slim neck and round foot. */
 .cover{
-  --n:8;--step:45vh;--hdr:64px;
-  --mw:clamp(280px,50vw,680px);--r:calc(var(--mw) * 1.3);
+  --hdr:64px;
+  --mw:min(50vw,680px,calc((100vh - var(--hdr) - 250px) / .86));
+  --t:calc(var(--mw) * .032);
+  --bz:clamp(4px,.6vw,8px);
+  --r:calc(var(--mw) * 1.45);
   position:relative;margin-inline:calc(var(--gutter) * -1);
-  height:calc((var(--n) - 1) * var(--step) + 100vh - var(--hdr));
+  height:calc(100vh - var(--hdr));min-height:520px;
 }
-@supports (height:100svh){.cover{--step:45svh;height:calc((var(--n) - 1) * var(--step) + 100svh - var(--hdr))}}
-@media (max-width:699px){.cover{--mw:62vw}}
+@supports (height:100svh){.cover{--mw:min(50vw,680px,calc((100svh - var(--hdr) - 250px) / .86));height:calc(100svh - var(--hdr))}}
+@media (max-width:699px){.cover{--mw:70vw}}
 .stage{
-  position:sticky;top:var(--hdr);height:calc(100vh - var(--hdr));height:calc(100svh - var(--hdr));
-  overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,6vh,64px);
-  perspective:calc(var(--mw) * 3);
+  position:relative;height:100%;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3.5vh,40px);
+  perspective:calc(var(--mw) * var(--pf,3));perspective-origin:50% 38%;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;
 }
-.ring{position:relative;width:var(--mw);aspect-ratio:16/9;transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1))}
-.mon{position:absolute;inset:0;display:block;transform:rotateY(calc(var(--a,0) * 1deg)) translateZ(var(--r));backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.stage.is-dragging{cursor:grabbing}
+.ring{position:relative;width:var(--mw);aspect-ratio:16/9;margin-bottom:calc(var(--mw) * .3);transform-style:preserve-3d;transform:translateZ(calc(var(--r) * -1))}
+.mon{position:absolute;inset:0;display:block;cursor:pointer;transform-style:preserve-3d;transform:rotateY(calc(var(--a,0) * 1deg)) translateZ(var(--r));-webkit-user-drag:none;-webkit-tap-highlight-color:transparent}
+.mon img{-webkit-user-drag:none}
+.mon-body,.mon-foot{position:absolute;transform-style:preserve-3d}
+.mon-body{inset:0;transform:translateZ(calc(var(--t) / -2))}
+.mon-body > *{position:absolute;display:block;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .mon-screen{
-  position:absolute;inset:0;display:block;overflow:hidden;background:var(--frame-bg);
-  border:clamp(5px,.7vw,9px) solid var(--bezel);border-radius:6px;
-  box-shadow:0 0 0 1px var(--bezel-edge),0 40px 70px -30px rgba(8,10,16,.55);
+  inset:0;background:var(--frame-bg);
+  border:var(--bz) solid var(--bezel);border-radius:5px;
+  transform:translateZ(calc(var(--t) / 2));
 }
 .mon-screen img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mon-screen img.contain{object-fit:contain}
 .mon-screen img.is-missing{visibility:hidden}
-.mon:focus-visible{outline:2px solid var(--chroma);outline-offset:6px}
-.cover-live{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
+.mon-back{inset:0;border-radius:5px;background:linear-gradient(160deg,var(--mon-hi),var(--mon-lo));transform:rotateY(180deg) translateZ(calc(var(--t) / 2))}
+.mon-side{top:0;height:100%;left:calc(50% - var(--t) / 2);width:var(--t);background:var(--mon-edge)}
+.mon-side.l{transform:rotateY(-90deg) translateZ(calc(var(--mw) / 2))}
+.mon-side.r{transform:rotateY(90deg) translateZ(calc(var(--mw) / 2))}
+.mon-cap{left:0;width:100%;top:calc(50% - var(--t) / 2);height:var(--t);background:var(--mon-edge)}
+.mon-cap.t{transform:rotateX(90deg) translateZ(calc(var(--mw) * 9 / 32))}
+.mon-cap.b{transform:rotateX(-90deg) translateZ(calc(var(--mw) * 9 / 32))}
+/* slim neck: drawn from the screen face itself so it adds no extra plane to the 3D sort;
+   it stops just above the foot's plane, since crossing that plane breaks the sort in Chromium */
+.mon-screen::after{
+  content:"";position:absolute;left:calc(50% - var(--mw) * .0275);top:calc(100% + var(--bz));
+  width:calc(var(--mw) * .055);height:calc(var(--mw) * .19);border-radius:0 0 2px 2px;
+  background:linear-gradient(90deg,var(--mon-lo),var(--mon-hi) 45%,var(--mon-lo));
+}
+/* round foot lying flat, with a darker disc just below for its edge, and a soft floor shadow */
+.mon-foot{
+  --fw:calc(var(--mw) * .34);--fd:calc(var(--mw) * .22);
+  left:calc(50% - var(--fw) / 2);width:var(--fw);height:var(--fd);
+  top:calc(80% + var(--mw) * .31 - var(--fd) / 2);
+  transform:translateZ(calc(var(--t) * -1 - var(--mw) * .01));
+}
+.mon-foot > *{position:absolute;inset:0;border-radius:50%}
+.ft-top{background:radial-gradient(ellipse at 50% 35%,var(--mon-hi),var(--mon-lo) 75%);transform:rotateX(90deg)}
+.ft-rim{background:var(--foot-rim);transform:translateY(calc(var(--mw) * .012)) rotateX(90deg)}
+.ft-shadow{inset:-45% -60%;background:radial-gradient(ellipse at center,var(--floor-shadow),transparent 62%);transform:translateY(calc(var(--mw) * .014)) rotateX(90deg)}
+.mon:focus-visible .mon-screen{outline:2px solid var(--chroma);outline-offset:4px}
+.cover-live{position:absolute;left:0;top:0;width:0;height:0;z-index:2;overflow:hidden;background:var(--frame-bg);opacity:0;pointer-events:none}
 .cover-live.is-shown{opacity:1;transition:opacity .5s}
 .cover-live iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.cover-caption{display:grid;justify-items:center;gap:6px;padding-inline:var(--gutter);text-align:center;pointer-events:none}
-.cc-count{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums}
+.cover-caption{position:relative;z-index:3;display:grid;justify-items:center;gap:6px;padding-inline:var(--gutter);text-align:center;cursor:auto}
+.cc-row{display:flex;align-items:center;gap:14px}
+.cc-count{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);font-variant-numeric:tabular-nums;min-width:11ch;justify-content:center}
 .cc-count::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--line)}
 .cover-caption.is-live .cc-count::before{background:var(--tally)}
+.cc-nav{
+  width:32px;height:32px;display:grid;place-items:center;padding:0;border-radius:50%;
+  border:1px solid var(--line);background:transparent;color:var(--fg);
+  font-family:var(--mono);font-size:15px;line-height:1;cursor:pointer;transition:border-color .2s,color .2s;
+}
+.cc-nav:hover{border-color:var(--chroma);color:var(--chroma)}
 .cc-title{margin:0;font-family:var(--display);font-weight:700;font-size:clamp(20px,2.4vw,30px);line-height:1.1;letter-spacing:.01em;text-wrap:balance;max-width:28em}
 .cc-hint{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 
@@ -258,39 +306,46 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
 </header>
 
 <main id="top">
-  <section class="cover" id="cover" aria-label="Music videos">
-    <div class="stage">
+  <section class="cover" id="cover" aria-label="Featured videos">
+    <div class="stage" id="stage">
       <div class="ring">
-        <a class="mon" style="--i:0" href="https://www.youtube.com/watch?v=4A5ALrv4en8" data-id="4A5ALrv4en8" data-title="OZworld&nbsp;- SURECHIGAI REMIX feat. Emi Meyer" aria-label="OZworld - SURECHIGAI REMIX feat. Emi Meyer">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/4A5ALrv4en8/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/4A5ALrv4en8/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="#works" draggable="false" data-provider="vimeo" data-id="1234326957" data-title="LEX&nbsp;- intro PV" aria-label="LEX - intro PV">
+          <span class="mon-body"><span class="mon-screen"><img class="contain" src="https://i.vimeocdn.com/video/2210883367-65ad593b79f4610de0e1a06d1d878533c62b323292e3c561098e4c434d767531-d_1280" data-fallback="https://i.vimeocdn.com/video/2210883367-65ad593b79f4610de0e1a06d1d878533c62b323292e3c561098e4c434d767531-d_640" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:1" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" data-id="z9OEtHuGm4I" data-title="MIKADO HARKA ENEL&nbsp;- ロデオ" aria-label="MIKADO HARKA ENEL - ロデオ">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/z9OEtHuGm4I/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/z9OEtHuGm4I/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=4A5ALrv4en8" draggable="false" data-provider="youtube" data-id="4A5ALrv4en8" data-title="OZworld&nbsp;- SURECHIGAI REMIX feat. Emi Meyer" aria-label="OZworld - SURECHIGAI REMIX feat. Emi Meyer">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/4A5ALrv4en8/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/4A5ALrv4en8/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:2" href="https://www.youtube.com/watch?v=V5lGv6_ysI0" data-id="V5lGv6_ysI0" data-title="Loota&nbsp;- First Aid feat. 5lack" aria-label="Loota - First Aid feat. 5lack">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/V5lGv6_ysI0/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/V5lGv6_ysI0/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=z9OEtHuGm4I" draggable="false" data-provider="youtube" data-id="z9OEtHuGm4I" data-title="MIKADO HARKA ENEL&nbsp;- ロデオ" aria-label="MIKADO HARKA ENEL - ロデオ">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/z9OEtHuGm4I/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/z9OEtHuGm4I/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:3" href="https://www.youtube.com/watch?v=FF_y03bg53M" data-id="FF_y03bg53M" data-title="TEN'S UNIQUE&nbsp;- NEXT STAGE" aria-label="TEN'S UNIQUE - NEXT STAGE">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/FF_y03bg53M/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/FF_y03bg53M/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=V5lGv6_ysI0" draggable="false" data-provider="youtube" data-id="V5lGv6_ysI0" data-title="Loota&nbsp;- First Aid feat. 5lack" aria-label="Loota - First Aid feat. 5lack">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/V5lGv6_ysI0/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/V5lGv6_ysI0/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:4" href="https://www.youtube.com/watch?v=Mz40xvYicYc" data-id="Mz40xvYicYc" data-title="iCE KiD&nbsp;- SMOKIN’ ROOM feat. Glamour Dalie" aria-label="iCE KiD - SMOKIN’ ROOM feat. Glamour Dalie">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/Mz40xvYicYc/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/Mz40xvYicYc/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=FF_y03bg53M" draggable="false" data-provider="youtube" data-id="FF_y03bg53M" data-title="TEN'S UNIQUE&nbsp;- NEXT STAGE" aria-label="TEN'S UNIQUE - NEXT STAGE">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/FF_y03bg53M/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/FF_y03bg53M/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:5" href="https://www.youtube.com/watch?v=u-MQuw5Phrc" data-id="u-MQuw5Phrc" data-title="KUJA&nbsp;- ESCAPE feat. DALU" aria-label="KUJA - ESCAPE feat. DALU">
-          <span class="mon-screen"><img src="assets/escape-thumb.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=Mz40xvYicYc" draggable="false" data-provider="youtube" data-id="Mz40xvYicYc" data-title="iCE KiD&nbsp;- SMOKIN’ ROOM feat. Glamour Dalie" aria-label="iCE KiD - SMOKIN’ ROOM feat. Glamour Dalie">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/Mz40xvYicYc/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/Mz40xvYicYc/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:6" href="https://www.youtube.com/watch?v=bts0wOzwns0" data-id="bts0wOzwns0" data-title="SUNNY YAMAMOTO&nbsp;- UNKNOWN" aria-label="SUNNY YAMAMOTO - UNKNOWN">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/bts0wOzwns0/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/bts0wOzwns0/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=u-MQuw5Phrc" draggable="false" data-provider="youtube" data-id="u-MQuw5Phrc" data-title="KUJA&nbsp;- ESCAPE feat. DALU" aria-label="KUJA - ESCAPE feat. DALU">
+          <span class="mon-body"><span class="mon-screen"><img src="assets/escape-thumb.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
-        <a class="mon" style="--i:7" href="https://www.youtube.com/watch?v=mQBGKid0ODg" data-id="mQBGKid0ODg" data-title="KUJA&nbsp;- SUPER SAIYAN" aria-label="KUJA - SUPER SAIYAN">
-          <span class="mon-screen"><img src="https://i.ytimg.com/vi/mQBGKid0ODg/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/mQBGKid0ODg/hqdefault.jpg" alt="" decoding="async"></span>
+        <a class="mon" href="https://www.youtube.com/watch?v=bts0wOzwns0" draggable="false" data-provider="youtube" data-id="bts0wOzwns0" data-title="SUNNY YAMAMOTO&nbsp;- UNKNOWN" aria-label="SUNNY YAMAMOTO - UNKNOWN">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/bts0wOzwns0/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/bts0wOzwns0/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
+        </a>
+        <a class="mon" href="https://www.youtube.com/watch?v=mQBGKid0ODg" draggable="false" data-provider="youtube" data-id="mQBGKid0ODg" data-title="KUJA&nbsp;- SUPER SAIYAN" aria-label="KUJA - SUPER SAIYAN">
+          <span class="mon-body"><span class="mon-screen"><img src="https://i.ytimg.com/vi/mQBGKid0ODg/maxresdefault.jpg" data-fallback="https://i.ytimg.com/vi/mQBGKid0ODg/hqdefault.jpg" alt="" decoding="async" draggable="false"></span></span>
         </a>
       </div>
       <div class="cover-live" id="cover-live" aria-hidden="true"></div>
       <div class="cover-caption" id="cover-caption">
-        <span class="cc-count" id="cc-count">CH 01 / 08</span>
-        <p class="cc-title" id="cc-title">OZworld&nbsp;- SURECHIGAI REMIX feat. Emi Meyer</p>
-        <span class="cc-hint" id="cc-hint">Scroll to switch</span>
+        <div class="cc-row">
+          <button class="cc-nav" id="cc-prev" type="button" aria-label="Previous video">‹</button>
+          <span class="cc-count" id="cc-count">CH 01 / 09</span>
+          <button class="cc-nav" id="cc-next" type="button" aria-label="Next video">›</button>
+        </div>
+        <p class="cc-title" id="cc-title">LEX&nbsp;- intro PV</p>
+        <span class="cc-hint" id="cc-hint">Swipe sideways to switch</span>
       </div>
     </div>
   </section>
@@ -766,12 +821,12 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
   player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
 
-  /* Cover: scrolling turns the ring of monitors; when it rests, the front screen plays its MV muted.
-     The player sits flat over the front screen (not inside the 3D ring) and hides while the ring moves. */
+  /* Cover: a looping ring of monitors turned by sideways input — swipe or drag, a sideways trackpad
+     scroll, the arrow buttons or arrow keys. Vertical scrolling is left to the page. When the ring
+     rests, the front screen plays its video muted; the player sits flat over that screen. */
   const cover = document.getElementById('cover');
   if (cover) {
-    const stage = cover.querySelector('.stage');
-    const ring = cover.querySelector('.ring');
+    const stage = document.getElementById('stage');
     const mons = [...cover.querySelectorAll('.mon')];
     const live = document.getElementById('cover-live');
     const caption = document.getElementById('cover-caption');
@@ -780,35 +835,44 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
     const ccHint = document.getElementById('cc-hint');
     const header = document.querySelector('.site-header');
     const N = mons.length;
+    const STEP = 360 / N;
     const pad = n => String(n).padStart(2, '0');
-    let p = 0, shownK = -1, settledK = -1, idle = 0, raf = 0, touching = false;
-    let yt = null, ytFor = -1, ytApi = null;
+    const mod = (n, m) => ((n % m) + m) % m;
+    let p = 0, shownK = -1, settled = false, inView = true;
+    let anim = 0, snapT = 0, drag = null, suppressClick = false;
+    let liveFor = -1, livePlaying = false, liveKill = null;
+    let ytApi = null, vimeoApi = null;
 
-    const geom = () => {
-      const travel = Math.max(1, cover.offsetHeight - stage.offsetHeight);
-      const scrolled = header.offsetHeight - cover.getBoundingClientRect().top;
-      return { travel, scrolled, stepPx: travel / (N - 1) };
-    };
-    const inView = () => {
-      const r = stage.getBoundingClientRect();
-      return r.bottom > header.offsetHeight + r.height * 0.5 && r.top < innerHeight;
-    };
-    const setHint = () => {
-      ccHint.textContent = settledK !== -1 && !reduce
-        ? (canHover.matches ? 'Click' : 'Tap') + ' the screen to watch with sound'
-        : 'Scroll to switch';
-    };
+    /* add the decorative 3D parts: back, edges, neck and foot */
+    const part = (cls, parent) => { const s = document.createElement('span'); s.className = cls; s.setAttribute('aria-hidden', 'true'); parent.appendChild(s); return s; };
+    mons.forEach(m => {
+      const body = m.querySelector('.mon-body');
+      ['mon-back', 'mon-side l', 'mon-side r', 'mon-cap t', 'mon-cap b'].forEach(c => part(c, body));
+      const foot = part('mon-foot', m);
+      ['ft-shadow', 'ft-rim', 'ft-top'].forEach(c => part(c, foot));
+    });
 
-    const loadYT = () => ytApi || (ytApi = new Promise((resolve, reject) => {
-      if (window.YT && window.YT.Player) { resolve(window.YT); return; }
-      const prev = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(window.YT); };
+    const front = () => mod(Math.round(p), N);
+    const stepPx = () => mons[0].offsetWidth * 0.8;
+
+    const loadScript = (src, ready) => new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://www.youtube.com/iframe_api';
+      s.src = src;
       s.async = true;
-      s.onerror = () => { ytApi = null; reject(new Error('YouTube API failed to load')); };
+      s.onload = () => { if (ready) return; resolve(); };
+      s.onerror = () => reject(new Error('Failed to load ' + src));
+      if (ready) ready(resolve);
       document.head.appendChild(s);
-    }));
+    });
+    const loadYT = () => ytApi || (ytApi = (window.YT && window.YT.Player)
+      ? Promise.resolve(window.YT)
+      : loadScript('https://www.youtube.com/iframe_api', done => {
+          const prev = window.onYouTubeIframeAPIReady;
+          window.onYouTubeIframeAPIReady = () => { if (prev) prev(); done(); };
+        }).then(() => window.YT).catch(err => { ytApi = null; throw err; }));
+    const loadVimeo = () => vimeoApi || (vimeoApi = window.Vimeo && window.Vimeo.Player
+      ? Promise.resolve(window.Vimeo)
+      : loadScript('https://player.vimeo.com/api/player.js').then(() => window.Vimeo).catch(err => { vimeoApi = null; throw err; }));
 
     const place = k => {
       const s = mons[k].querySelector('.mon-screen');
@@ -819,36 +883,52 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
       live.style.width = s.clientWidth + 'px';
       live.style.height = s.clientHeight + 'px';
     };
-    const hideLive = () => {
-      live.classList.remove('is-shown');
-      caption.classList.remove('is-live');
-    };
+    const hideLive = () => { live.classList.remove('is-shown'); caption.classList.remove('is-live'); };
     const stopLive = () => {
       hideLive();
-      if (yt && yt.destroy) { try { yt.destroy(); } catch (err) { /* already gone */ } }
-      yt = null;
-      ytFor = -1;
+      if (liveKill) { try { liveKill(); } catch (err) { /* already gone */ } }
+      liveKill = null;
+      liveFor = -1;
+      livePlaying = false;
       live.replaceChildren();
     };
-    const showIfPlaying = k => {
-      if (settledK !== k || ytFor !== k || !yt || !yt.getPlayerState) return;
-      if (yt.getPlayerState() !== 1) return;
-      place(k);
+    const showIfReady = () => {
+      if (!settled || !inView || liveFor !== front() || !livePlaying || !player.hidden) return;
+      place(liveFor);
       live.classList.add('is-shown');
       caption.classList.add('is-live');
     };
+    const onPlaying = k => { if (liveFor === k) { livePlaying = true; showIfReady(); } };
+
     const startLive = k => {
       if (reduce) return;
-      if (ytFor === k && yt) { showIfPlaying(k); return; }
+      if (liveFor === k) { showIfReady(); return; }
       stopLive();
-      ytFor = k;
+      liveFor = k;
       place(k);
+      const m = mons[k];
+      const id = m.dataset.id;
+      if (m.dataset.provider === 'vimeo') {
+        const f = document.createElement('iframe');
+        f.src = 'https://player.vimeo.com/video/' + id + '?autoplay=1&muted=1&loop=1&autopause=0&controls=0&title=0&byline=0&portrait=0&dnt=1&playsinline=1';
+        f.allow = 'autoplay; fullscreen; picture-in-picture';
+        f.title = m.dataset.title;
+        live.replaceChildren(f);
+        loadVimeo().then(Vimeo => {
+          if (liveFor !== k) return;
+          const vp = new Vimeo.Player(f);
+          liveKill = () => vp.destroy();
+          vp.on('playing', () => onPlaying(k));
+          vp.setVolume(0).catch(() => {});
+          vp.play().catch(() => {});
+        }).catch(() => { /* the iframe still autoplays; fade in after a moment */ setTimeout(() => onPlaying(k), 1500); });
+        return;
+      }
       const host = document.createElement('div');
       live.replaceChildren(host);
-      const id = mons[k].dataset.id;
       loadYT().then(YT => {
-        if (ytFor !== k) return;
-        yt = new YT.Player(host, {
+        if (liveFor !== k) return;
+        const yp = new YT.Player(host, {
           videoId: id,
           width: '100%',
           height: '100%',
@@ -856,87 +936,155 @@ h2{margin:0;font-family:var(--display);font-weight:800;text-transform:uppercase;
           playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: id, playsinline: 1, rel: 0, iv_load_policy: 3, disablekb: 1, fs: 0, modestbranding: 1 },
           events: {
             onReady: e => { e.target.mute(); e.target.playVideo(); },
-            onStateChange: e => { if (e.data === 1) showIfPlaying(k); },
-            onError: () => { if (ytFor === k) stopLive(); }
+            onStateChange: e => { if (e.data === 1) onPlaying(k); },
+            onError: () => { if (liveFor === k) stopLive(); }
           }
         });
+        liveKill = () => yp.destroy();
       }).catch(() => {});
     };
 
-    const update = () => {
-      raf = 0;
-      const { travel, scrolled } = geom();
-      p = Math.min(Math.max(scrolled / travel, 0), 1) * (N - 1);
-      ring.style.setProperty('--p', p.toFixed(4));
+    const setHint = () => {
+      const touch = !canHover.matches;
+      ccHint.textContent = settled && !reduce
+        ? (touch ? 'Swipe to switch · Tap the screen for sound' : 'Drag or scroll sideways · Click the screen for sound')
+        : (touch ? 'Swipe sideways to switch' : 'Drag or scroll sideways to switch');
+    };
+
+    const render = () => {
       mons.forEach((m, i) => {
-        /* signed offset from the front, wrapped around the ring: -4 … 4 steps */
         let off = i - p;
         off -= N * Math.round(off / N);
-        m.style.setProperty('--a', (off * 45).toFixed(3));
         const d = Math.abs(off);
-        const o = d <= 1 ? 1 - d * 0.3 : d < 2 ? 0.7 * (2 - d) : 0;
-        m.style.opacity = o.toFixed(3);
-        m.style.visibility = o > 0.01 ? 'visible' : 'hidden';
+        m.style.setProperty('--a', (off * STEP).toFixed(3));
+        /* no opacity here: it would flatten the 3D monitor and break depth sorting */
+        m.style.visibility = d <= 2.4 ? 'visible' : 'hidden';
       });
-      const k = Math.round(p);
+      const k = front();
       if (k !== shownK) {
         shownK = k;
         ccCount.textContent = 'CH ' + pad(k + 1) + ' / ' + pad(N);
         ccTitle.textContent = mons[k].dataset.title;
       }
-      if (ytFor !== -1 && (k !== ytFor || !inView())) stopLive();
+      if (liveFor !== -1 && liveFor !== k) stopLive();
     };
 
+    const unsettle = () => { if (settled) { settled = false; hideLive(); setHint(); } };
     const settle = () => {
-      if (touching || !player.hidden) return;
-      update();
-      const { travel, scrolled, stepPx } = geom();
-      const k = Math.round(p);
-      if (scrolled > 0.5 && scrolled < travel - 0.5 && Math.abs(scrolled - k * stepPx) > 2) {
-        window.scrollTo({ top: window.scrollY + (k * stepPx - scrolled), behavior: reduce ? 'auto' : 'smooth' });
-        return;
-      }
-      if (!inView()) return;
-      settledK = k;
+      settled = true;
       setHint();
-      startLive(k);
+      if (inView && player.hidden) startLive(front());
     };
-    const queueSettle = ms => { clearTimeout(idle); idle = setTimeout(settle, ms); };
+    const cancelAnim = () => { if (anim) { cancelAnimationFrame(anim); anim = 0; } clearTimeout(snapT); };
+    const animateTo = target => {
+      cancelAnim();
+      unsettle();
+      const from = p, dist = target - from;
+      if (Math.abs(dist) < 0.001) { p = target; render(); settle(); return; }
+      const dur = reduce ? 0 : Math.min(900, 380 + Math.abs(dist) * 140);
+      const t0 = performance.now();
+      const tick = now => {
+        const t = dur ? Math.min(1, (now - t0) / dur) : 1;
+        p = from + dist * (1 - Math.pow(1 - t, 3));
+        render();
+        if (t < 1) anim = requestAnimationFrame(tick);
+        else { anim = 0; p = target; render(); settle(); }
+      };
+      anim = requestAnimationFrame(tick);
+    };
+    const go = delta => animateTo(Math.round(p) + delta);
+    const goTo = i => { let off = i - p; off -= N * Math.round(off / N); animateTo(Math.round(p + off)); };
 
-    window.addEventListener('scroll', () => {
-      if (!raf) raf = requestAnimationFrame(update);
-      if (settledK !== -1) { settledK = -1; hideLive(); setHint(); }
-      queueSettle(180);
-    }, { passive: true });
-    window.addEventListener('touchstart', () => { touching = true; }, { passive: true });
-    const endTouch = () => { touching = false; queueSettle(180); };
-    window.addEventListener('touchend', endTouch, { passive: true });
-    window.addEventListener('touchcancel', endTouch, { passive: true });
+    /* drag / swipe */
+    stage.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || e.target.closest('.cc-nav')) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, p0: p, moved: false, vx: 0, lx: e.clientX, lt: performance.now() };
+    });
+    stage.addEventListener('pointermove', e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved) {
+        if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+        if (Math.abs(dx) < 6) return;
+        drag.moved = true;
+        try { stage.setPointerCapture(e.pointerId); } catch (err) { /* pointer already released */ }
+        cancelAnim();
+        unsettle();
+        stage.classList.add('is-dragging');
+      }
+      const now = performance.now();
+      const v = (e.clientX - drag.lx) / Math.max(1, now - drag.lt);
+      drag.vx = drag.vx * 0.6 + v * 0.4;
+      drag.lx = e.clientX;
+      drag.lt = now;
+      p = drag.p0 - dx / stepPx();
+      render();
+    });
+    const endDrag = e => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.moved) {
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 60);
+        stage.classList.remove('is-dragging');
+        const fling = Math.max(-2, Math.min(2, -drag.vx * 260 / stepPx()));
+        animateTo(Math.round(p + fling));
+      }
+      drag = null;
+    };
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
 
-    const setHdr = () => cover.style.setProperty('--hdr', header.offsetHeight + 'px');
-    const relayout = () => { setHdr(); update(); if (settledK !== -1) place(settledK); };
-    if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(header);
-    window.addEventListener('resize', () => { relayout(); queueSettle(250); });
+    /* sideways trackpad scroll (or shift + wheel); vertical scrolling passes through to the page */
+    stage.addEventListener('wheel', e => {
+      const sideways = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+      const dx = sideways ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+      if (!dx) return;
+      e.preventDefault();
+      cancelAnim();
+      unsettle();
+      p += dx / (stepPx() * 0.9);
+      render();
+      snapT = setTimeout(() => animateTo(Math.round(p)), 140);
+    }, { passive: false });
+
+    document.getElementById('cc-prev').addEventListener('click', () => go(-1));
+    document.getElementById('cc-next').addEventListener('click', () => go(1));
+    cover.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+    });
 
     mons.forEach((m, i) => m.addEventListener('click', e => {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
-      if (i === Math.round(p)) {
-        const card = document.querySelector('.work[data-id="' + m.dataset.id + '"]');
-        if (!card) return;
-        stopLive();
-        openPlayer(card);
-        lastFocus = m;
-        return;
-      }
-      const { scrolled, stepPx } = geom();
-      window.scrollTo({ top: window.scrollY + (i * stepPx - Math.max(0, scrolled)), behavior: reduce ? 'auto' : 'smooth' });
+      if (suppressClick) return;
+      if (i !== front() || anim) { goTo(i); return; }
+      const card = document.querySelector('.work[data-id="' + m.dataset.id + '"]');
+      if (!card) return;
+      stopLive();
+      openPlayer(card);
+      lastFocus = m;
     }));
-    onPlayerClose = () => queueSettle(60);
+    onPlayerClose = () => { if (settled) setTimeout(settle, 60); };
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          inView = en.isIntersecting;
+          if (!inView) stopLive();
+          else if (settled) settle();
+        });
+      }, { threshold: 0.45 }).observe(stage);
+    }
+
+    const setHdr = () => cover.style.setProperty('--hdr', header.offsetHeight + 'px');
+    const relayout = () => { setHdr(); render(); if (live.classList.contains('is-shown') && liveFor !== -1) place(liveFor); };
+    if ('ResizeObserver' in window) new ResizeObserver(relayout).observe(header);
+    window.addEventListener('resize', relayout);
 
     setHdr();
-    update();
-    queueSettle(300);
+    render();
+    settle();
   }
 })();
 </script>
